@@ -172,11 +172,11 @@ internal class Program
             IEnumerable<Type> types;
             if (options.ExcludeInternals)
             {
-                types = assembly.GetTypes().Where(type => type.IsPublic && type.IsVisible);
+                types = assembly.GetLoadableTypes().Where(type => type.IsPublic && type.IsVisible);
             }
             else
             {
-                types = assembly.GetTypes().Where(type => type.IsPublic);
+                types = assembly.GetLoadableTypes().Where(type => type.IsPublic);
             }
             IEnumerable<IGrouping<string, Type>> typesByNamespace = types.GroupBy(type => type.Namespace).OrderBy(g => g.Key);
             foreach (IGrouping<string, Type> namespaceTypes in typesByNamespace)
