@@ -1,4 +1,6 @@
-mode: Mainline
+assembly-versioning-scheme: Major
+assembly-file-versioning-scheme: MajorMinorPatchTag
+mode: ContinuousDelivery
 branches: {}
 ignore:
   sha: []
