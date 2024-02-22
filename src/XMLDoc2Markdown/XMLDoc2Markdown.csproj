@@ -9,18 +9,20 @@
     <PackAsTool>true</PackAsTool>
     <IsPackable>true</IsPackable>
     
-    <Authors>Charles de Vandière</Authors>
-    <Copyright>© 2022 Charles de Vandière</Copyright>
+    <PackageId>Nefarius.Tools.XMLDoc2Markdown</PackageId>
+    
+    <Authors>Charles de Vandière, Benjamin "Nefarius" Höglinger-Stelzer</Authors>
+    <Copyright>© 2022 Charles de Vandière, 2024 Benjamin "Nefarius" Höglinger-Stelzer</Copyright>
     <Product>XMLDoc2Markdown</Product>
     <Title>XMLDoc2Markdown</Title>
     <Description>Tool to generate markdown from C# XML documentation.</Description>
     <Summary>Tool to generate markdown from C# XML documentation.</Summary>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://charlesdevandiere.github.io/xmldoc2md</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/nefarius/xmldoc2md</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Markdown;XMLDocumentation</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/charlesdevandiere/xmldoc2md</RepositoryUrl>
+    <RepositoryUrl>https://github.com/nefarius/xmldoc2md</RepositoryUrl>
     
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
