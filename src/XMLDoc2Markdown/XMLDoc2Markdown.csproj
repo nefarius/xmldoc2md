@@ -10,6 +10,7 @@
     <IsPackable>true</IsPackable>
     
     <PackageId>Nefarius.Tools.XMLDoc2Markdown</PackageId>
+    <OutputPath>$(SolutionDir)bin\</OutputPath>
     
     <Authors>Charles de Vandière, Benjamin "Nefarius" Höglinger-Stelzer</Authors>
     <Copyright>© 2022 Charles de Vandière, 2024 Benjamin "Nefarius" Höglinger-Stelzer</Copyright>
