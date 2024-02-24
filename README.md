@@ -12,7 +12,7 @@ See sample generated documentation [here](https://charlesdevandiere.github.io/xm
 ### Install tool
 
 ```shell
-dotnet tool install -g XMLDoc2Markdown
+dotnet tool install -g Nefarius.Tools.XMLDoc2Markdown
 ```
 
 ### Generate documentation
