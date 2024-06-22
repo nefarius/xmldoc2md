@@ -2,6 +2,7 @@
 
 [![.NET](https://github.com/nefarius/xmldoc2md/actions/workflows/build.yml/badge.svg)](https://github.com/nefarius/xmldoc2md/actions/workflows/build.yml)
 [![Nuget](https://img.shields.io/nuget/v/Nefarius.Tools.XMLDoc2Markdown.svg?color=blue&logo=nuget)](https://www.nuget.org/packages/Nefarius.Tools.XMLDoc2Markdown)
+![NuGet Downloads](https://img.shields.io/nuget/dt/Nefarius.Tools.XMLDoc2Markdown)
 
 Tool to generate markdown from C# XML documentation.
 
