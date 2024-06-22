@@ -52,6 +52,7 @@
     <PackageReference Include="MarkdownBuilder" Version="0.2.0" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.10.0" />
   </ItemGroup>
 
   <ItemGroup>

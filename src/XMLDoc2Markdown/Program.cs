@@ -146,6 +146,9 @@ internal class Program
             {
                 Directory.CreateDirectory(@out);
             }
+            
+            AssemblyResolver resolver = new();
+            resolver.AddSearchDirectory(Path.GetDirectoryName(src));
 
             Assembly assembly = new AssemblyLoadContext(src)
                 .LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(src)));
@@ -162,7 +165,7 @@ internal class Program
             {
                 indexPage.AppendParagraph(new MarkdownLink(new MarkdownInlineCode(backIndexButtonOptiontext), linkbackIndexButtontext));
             }
-
+            
             IEnumerable<Type> types = options.ExcludeInternals
                 ? assembly.GetLoadableTypes().Where(type => type.IsPublic && type.IsVisible)
                 : assembly.GetLoadableTypes().Where(type => type.IsPublic);
