@@ -7,6 +7,9 @@ using NuGet.Frameworks;
 
 namespace XMLDoc2Markdown.Utils;
 
+/// <summary>
+///     Utility class to dynamically resolve missing assemblies from well-known locations.
+/// </summary>
 internal sealed class AssemblyResolver
 {
     private readonly List<string> _frameworkFolders = new();
