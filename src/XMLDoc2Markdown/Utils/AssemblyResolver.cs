@@ -32,7 +32,9 @@ internal sealed class AssemblyResolver
 
         // Add ASP.NET Core directory
         string runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-        string aspNetCoreApp = Path.Combine(runtimeDirectory, "..", "..", "Microsoft.AspNetCore.App");
+        string aspNetCoreApp = new DirectoryInfo(
+            Path.Combine(runtimeDirectory, "..", "..", "Microsoft.AspNetCore.App")
+        ).FullName;
         this._searchDirectories.Add(aspNetCoreApp);
 
         List<NuGetFramework> knownFrameworks =
