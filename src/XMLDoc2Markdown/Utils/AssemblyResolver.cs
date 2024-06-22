@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using NuGet.Frameworks;
 
 namespace XMLDoc2Markdown.Utils;
@@ -28,6 +29,11 @@ internal sealed class AssemblyResolver
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string nugetPackagesDir = Path.Combine(userProfile, ".nuget", "packages");
         this._searchDirectories.Add(nugetPackagesDir);
+
+        // Add ASP.NET Core directory
+        string runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
+        string aspNetCoreApp = Path.Combine(runtimeDirectory, "..", "..", "Microsoft.AspNetCore.App");
+        this._searchDirectories.Add(aspNetCoreApp);
 
         List<NuGetFramework> knownFrameworks =
         [
@@ -117,6 +123,23 @@ internal sealed class AssemblyResolver
                          select Assembly.LoadFrom(assemblyPath))
                 {
                     return resolvedAssembly;
+                }
+            }
+
+            // Probe ASP.NET Core
+            if (directory.Contains("Microsoft.AspNetCore") && Directory.Exists(directory))
+            {
+                IOrderedEnumerable<DirectoryInfo> matchingMajorVersionDirs = Directory.GetDirectories(directory)
+                    .Select(d => new DirectoryInfo(d))
+                    .Where(d => d.Name.StartsWith($"{assemblyName.Version!.Major}."))
+                    .OrderByDescending(d => d.Name);
+
+                DirectoryInfo versionedSubDir = matchingMajorVersionDirs.First();
+
+                string assemblyPath = Path.Combine(versionedSubDir.FullName, assemblyName.Name + ".dll");
+                if (File.Exists(assemblyPath))
+                {
+                    return Assembly.LoadFrom(assemblyPath);
                 }
             }
 
