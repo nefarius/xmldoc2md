@@ -29,6 +29,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -40,6 +41,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>icon.png</Link>
+    </None>
     <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
     <None Include="..\..\README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
