@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -76,6 +77,7 @@ internal sealed class AssemblyResolver
         }
     }
 
+    [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
     private Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
     {
         AssemblyName assemblyName = new(args.Name);
@@ -94,6 +96,28 @@ internal sealed class AssemblyResolver
                      select Assembly.LoadFrom(assemblyPath))
             {
                 return resolvedAssembly;
+            }
+
+            // Try to find best matching copy based on major version
+            packageDir = Path.Combine(directory, assemblyName.Name!.ToLowerInvariant());
+            if (Directory.Exists(packageDir))
+            {
+                IOrderedEnumerable<DirectoryInfo> matchingMajorVersionDirs = Directory.GetDirectories(packageDir)
+                    .Select(d => new DirectoryInfo(d))
+                    .Where(d => d.Name.StartsWith($"{assemblyName.Version!.Major}."))
+                    .OrderByDescending(d => d.Name);
+
+                DirectoryInfo versionedSubDir = matchingMajorVersionDirs.First();
+
+                string libPath = Path.Combine(versionedSubDir.Name, "lib");
+                foreach (Assembly resolvedAssembly in from framework in this._frameworkFolders
+                         select Path.Combine(packageDir, libPath, framework, assemblyName.Name + ".dll")
+                         into assemblyPath
+                         where File.Exists(assemblyPath)
+                         select Assembly.LoadFrom(assemblyPath))
+                {
+                    return resolvedAssembly;
+                }
             }
 
             // Build the path for general directories (fallback)
