@@ -6,6 +6,8 @@
 
 Tool to generate markdown from C# XML documentation.
 
+> *Based on the work of [Charles de Vandière](https://github.com/charlesdevandiere/xmldoc2md) and [Fernando Cerqueira](https://github.com/FRACerqueira/xmldoc2md) ❤*
+
 See sample generated documentation [here](https://charlesdevandiere.github.io/xmldoc2md/).
 
 ## How to use
