@@ -11,7 +11,7 @@ using XMLDoc2Markdown.Utils;
 
 namespace XMLDoc2Markdown;
 
-internal class TypeDocumentation
+internal partial class TypeDocumentation
 {
     private const string BackingFieldName = ">k__BackingField";
 
@@ -395,7 +395,7 @@ internal class TypeDocumentation
     {
         return node switch
         {
-            XText text => new MarkdownText(Regex.Replace(text.ToString(), "[ ]{2,}", " ")),
+            XText text => new MarkdownText(NodeToTextRegex().Replace(text.ToString(), " ")),
             XElement element => this.XElementToMarkdown(element),
             _ => null
         };
@@ -895,4 +895,7 @@ internal class TypeDocumentation
     {
         return Type.GetType(typeFullName) ?? this.assembly.GetType(typeFullName);
     }
+
+    [GeneratedRegex("[ ]{2,}")]
+    private static partial Regex NodeToTextRegex();
 }
