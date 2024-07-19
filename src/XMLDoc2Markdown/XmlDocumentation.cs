@@ -10,16 +10,15 @@ namespace XMLDoc2Markdown;
 
 internal class XmlDocumentation
 {
-    public string AssemblyName { get; }
-    public IEnumerable<XElement> Members { get; }
-
     public XmlDocumentation(string dllPath)
     {
-        string xmlPath = Path.Combine(Directory.GetParent(dllPath).FullName, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
+        string xmlPath = Path.Combine(Directory.GetParent(dllPath)!.FullName,
+            Path.GetFileNameWithoutExtension(dllPath) + ".xml");
 
         if (!File.Exists(xmlPath))
         {
-            throw new FileNotFoundException($"Could not load XML documentation file '{Path.GetFullPath(xmlPath)}'. File not found.", xmlPath);
+            throw new FileNotFoundException(
+                $"Could not load XML documentation file '{Path.GetFullPath(xmlPath)}'. File not found.", xmlPath);
         }
 
         try
@@ -35,12 +34,15 @@ internal class XmlDocumentation
         }
     }
 
+    public string AssemblyName { get; }
+    private IEnumerable<XElement> Members { get; }
+
     public XElement GetMember(MemberInfo memberInfo)
     {
         return this.GetMember($"{memberInfo.MemberType.GetAlias()}:{memberInfo.GetIdentifier()}");
     }
 
-    public XElement GetMember(string name)
+    private XElement GetMember(string name)
     {
         return this.Members.FirstOrDefault(member => member.Attribute("name").Value == name);
     }

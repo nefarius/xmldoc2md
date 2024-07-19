@@ -4,13 +4,16 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>0.0.0</Version>
+    <!-- <Version>0.0.0</Version> -->
     <ToolCommandName>xmldoc2md</ToolCommandName>
     <PackAsTool>true</PackAsTool>
     <IsPackable>true</IsPackable>
     
-    <Authors>Charles de Vandière, Fernando Cerqueira, Benjamin Höglinger-Stelzer</Authors>
-    <Copyright>© 2022-2024 Charles de Vandière, 2023 Fernando Cerqueira, 2024 Benjamin Höglinger-Stelzer</Copyright>
+    <PackageId>Nefarius.Tools.XMLDoc2Markdown</PackageId>
+    <OutputPath>$(SolutionDir)bin\</OutputPath>
+    
+    <Authors>Charles de Vandière, Benjamin "Nefarius" Höglinger-Stelzer</Authors>
+    <Copyright>© 2022 Charles de Vandière, 2024 Benjamin "Nefarius" Höglinger-Stelzer</Copyright>
     <Product>XMLDoc2Markdown</Product>
     <Title>XMLDoc2Markdown</Title>
     <Description>Tool to generate markdown from C# XML documentation.</Description>
@@ -26,6 +29,11 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
@@ -33,14 +41,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\..\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+      <Link>icon.png</Link>
+    </None>
     <None Include="..\..\LICENSE" Pack="true" PackagePath="LICENSE" />
     <None Include="..\..\README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MinVer" Version="5.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="MarkdownBuilder" Version="0.2.0" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.2" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="NuGet.Frameworks" Version="6.10.0" />
   </ItemGroup>
 
   <ItemGroup>

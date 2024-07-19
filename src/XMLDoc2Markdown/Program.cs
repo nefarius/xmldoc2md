@@ -20,15 +20,9 @@ internal class Program
             Name = "xmldoc2md"
         };
 
-        app.VersionOption("-v|--version", () =>
-        {
-            return string.Format(
-                "Version {0}",
-                Assembly.GetEntryAssembly()
-                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                    .InformationalVersion
-                    .ToString());
-        });
+        app.VersionOption("-v|--version", () => $"Version {Assembly.GetEntryAssembly()!
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!
+            .InformationalVersion}");
         app.HelpOption("-?|-h|--help");
 
         CommandArgument srcArg = app.Argument("src", "DLL source path");
@@ -152,6 +146,9 @@ internal class Program
             {
                 Directory.CreateDirectory(@out);
             }
+            
+            AssemblyResolver resolver = new();
+            resolver.AddSearchDirectory(Path.GetDirectoryName(src));
 
             Assembly assembly = new AssemblyLoadContext(src)
                 .LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(src)));
@@ -168,16 +165,10 @@ internal class Program
             {
                 indexPage.AppendParagraph(new MarkdownLink(new MarkdownInlineCode(backIndexButtonOptiontext), linkbackIndexButtontext));
             }
-
-            IEnumerable<Type> types;
-            if (options.ExcludeInternals)
-            {
-                types = assembly.GetTypes().Where(type => type.IsPublic && type.IsVisible);
-            }
-            else
-            {
-                types = assembly.GetTypes().Where(type => type.IsPublic);
-            }
+            
+            IEnumerable<Type> types = options.ExcludeInternals
+                ? assembly.GetLoadableTypes().Where(type => type.IsPublic && type.IsVisible)
+                : assembly.GetLoadableTypes().Where(type => type.IsPublic);
             IEnumerable<IGrouping<string, Type>> typesByNamespace = types.GroupBy(type => type.Namespace).OrderBy(g => g.Key);
             foreach (IGrouping<string, Type> namespaceTypes in typesByNamespace)
             {
@@ -191,15 +182,7 @@ internal class Program
                         continue;
                     }
 
-                    string typename;
-                    if (type.IsGenericType)
-                    {
-                        typename = type.PrettyTypeName();
-                    }
-                    else
-                    {
-                        typename = type.Name;
-                    }
+                    string typename = type.IsGenericType ? type.PrettyTypeName() : type.Name;
                     string fileName = type.GetDocsFileName();
                     Logger.Info($"  {fileName}.md");
 

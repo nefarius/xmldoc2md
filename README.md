@@ -1,9 +1,12 @@
 # <img align="left" width="100" height="100" src="icon.png">XMLDoc2Markdown 
 
-[![Build Status](https://dev.azure.com/charlesdevandiere/charlesdevandiere/_apis/build/status/charlesdevandiere.xmldoc2md?branchName=master)](https://dev.azure.com/charlesdevandiere/charlesdevandiere/_build/latest?definitionId=2&branchName=master)
-[![Nuget](https://img.shields.io/nuget/v/XMLDoc2Markdown.svg?color=blue&logo=nuget)](https://www.nuget.org/packages/XMLDoc2Markdown)
+[![.NET](https://github.com/nefarius/xmldoc2md/actions/workflows/build.yml/badge.svg)](https://github.com/nefarius/xmldoc2md/actions/workflows/build.yml)
+[![Nuget](https://img.shields.io/nuget/v/Nefarius.Tools.XMLDoc2Markdown.svg?color=blue&logo=nuget)](https://www.nuget.org/packages/Nefarius.Tools.XMLDoc2Markdown)
+![NuGet Downloads](https://img.shields.io/nuget/dt/Nefarius.Tools.XMLDoc2Markdown)
 
 Tool to generate markdown from C# XML documentation.
+
+> *Based on the work of [Charles de Vandière](https://github.com/charlesdevandiere/xmldoc2md) and [Fernando Cerqueira](https://github.com/FRACerqueira/xmldoc2md) ❤*
 
 See sample generated documentation [here](https://charlesdevandiere.github.io/xmldoc2md/).
 
@@ -12,7 +15,7 @@ See sample generated documentation [here](https://charlesdevandiere.github.io/xm
 ### Install tool
 
 ```shell
-dotnet tool install -g XMLDoc2Markdown
+dotnet tool install -g Nefarius.Tools.XMLDoc2Markdown
 ```
 
 ### Generate documentation
