@@ -67,25 +67,36 @@ namespace MyClassLib
         private string PrivateProperty { get; set; }
 
         /// <summary>
-        /// Ctor MyClass.
-        /// <br>Line1</br> 
-        /// <br>Line2</br> 
-        /// <br>Line3</br> 
-        /// <br>Line4</br> 
-        /// <br>Line5</br> 
+        ///     Ctor MyClass.
+        ///     <br>Line1</br>
+        ///     <br>Line2</br>
+        ///     <br>Line3</br>
+        ///     <br>Line4</br>
+        ///     <br>Line5</br>
         /// </summary>
         /// <remarks>
-        /// See also <see cref="MyClassLib.MyClass.MyClass(string, int)" />.
-        /// <code>
+        ///     See also <see cref="MyClassLib.MyClass.MyClass(string, int)" />.
+        ///     <code>
         /// if (true)
         /// {
         ///     var foo = new MyClass("foo", 1);
         ///     Console.WriteLine(foo.ToString());
         /// }
         /// </code>
+        ///     <list type="bullet">
+        ///         <item>
+        ///             <term>item 1</term>
+        ///             <description>The first item. <c>1</c></description>
+        ///         </item>
+        ///         <item>
+        ///             <term>item 2</term>
+        ///             <description>The second item. <c>2</c></description>
+        ///         </item>
+        ///     </list>
         /// </remarks>
         public MyClass()
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MyClassLib.MyClass" /> class.
