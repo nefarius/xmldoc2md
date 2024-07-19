@@ -304,6 +304,75 @@ internal class TypeDocumentation
 
         return new MarkdownParagraph(string.Join(Environment.NewLine, blocks));
     }
+    
+    private MarkdownList XElementToMarkdownList(XElement element)
+    {
+        MarkdownList markdownList = element.Attribute("type")?.Value switch
+        {
+            "number" => new MarkdownOrderedList(),
+            _ => new MarkdownList()
+        };
+
+        foreach (XElement item in element.Elements("item"))
+        {
+            MarkdownText markdownListItem = new(string.Empty);
+
+            IEnumerable<XNode> term = item.Element("term").Nodes();
+
+            MarkdownText markdownTerm = null;
+
+            foreach (XNode node in term)
+            {
+                object md = this.XNodeToMarkdown(node);
+                if (md is MarkdownInlineElement inlineElement)
+                {
+                    if (markdownTerm is null)
+                    {
+                        markdownTerm = new MarkdownText(inlineElement);
+                    }
+                    else
+                    {
+                        markdownTerm.Append(inlineElement);
+                    }
+                }
+            }
+
+            if (markdownTerm is not null)
+            {
+                markdownListItem.Append(new MarkdownStrongEmphasis(markdownTerm));
+            }
+
+            IEnumerable<XNode> description = item.Element("description").Nodes();
+
+            MarkdownText markdownDescription = null;
+
+            foreach (XNode node in description)
+            {
+                object md = this.XNodeToMarkdown(node);
+                if (md is MarkdownInlineElement inlineElement)
+                {
+                    if (markdownDescription is null)
+                    {
+                        markdownDescription = new MarkdownText(inlineElement);
+                    }
+                    else
+                    {
+                        markdownDescription.Append(inlineElement);
+                    }
+                }
+            }
+
+            if (markdownDescription is not null)
+            {
+                markdownListItem.Append(" - ");
+                markdownListItem.Append(markdownDescription);
+            }
+
+            markdownList.AddItem(markdownListItem);
+        }
+
+        return markdownList;
+    }
 
     private MarkdownTextElement XNodeToMarkdown(XNode node)
     {
