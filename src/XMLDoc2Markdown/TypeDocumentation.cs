@@ -205,6 +205,7 @@ internal class TypeDocumentation
             "para" => this.XNodesToMarkdownParagraph(element.Nodes()),
             "example" => this.XNodesToMarkdownParagraph(element.Nodes()),
             "code" => new MarkdownCode("csharp", TypeDocumentation.FormatCodeElementValue(element.Value)),
+            // "list" => this.XElementToMarkdownList(element),
             _ => new MarkdownText(element.Value)
         };
     }
