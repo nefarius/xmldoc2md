@@ -12,8 +12,8 @@
     <PackageId>Nefarius.Tools.XMLDoc2Markdown</PackageId>
     <OutputPath>$(SolutionDir)bin\</OutputPath>
     
-    <Authors>Charles de Vandière, Benjamin "Nefarius" Höglinger-Stelzer</Authors>
-    <Copyright>© 2022 Charles de Vandière, 2024 Benjamin "Nefarius" Höglinger-Stelzer</Copyright>
+    <Authors>Charles de Vandière, Fernando Cerqueira, Benjamin "Nefarius" Höglinger-Stelzer</Authors>
+    <Copyright>© 2022 Charles de Vandière, 2023 Fernando Cerqueira, 2024 Benjamin "Nefarius" Höglinger-Stelzer</Copyright>
     <Product>XMLDoc2Markdown</Product>
     <Title>XMLDoc2Markdown</Title>
     <Description>Tool to generate markdown from C# XML documentation.</Description>

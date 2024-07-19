@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		generate-sample-doc.bat = generate-sample-doc.bat
 		LICENSE = LICENSE
 		README.md = README.md
+		.github\workflows\build.yml = .github\workflows\build.yml
+		.github\workflows\publish-to-nuget.yml = .github\workflows\publish-to-nuget.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyClassLib", "sample\MyClassLib\MyClassLib.csproj", "{43173D49-864C-4BF5-BDBC-702B4A2D7ACC}"
