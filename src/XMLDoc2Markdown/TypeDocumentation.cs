@@ -164,11 +164,12 @@ internal partial class TypeDocumentation
     private static void WriteObsolete(IEnumerable<ObsoleteAttribute> attribute, IMarkdownDocument document,
         string defaultMessage)
     {
-        if (attribute.Any())
+        IEnumerable<ObsoleteAttribute> obsoleteAttributes = attribute.ToList();
+        if (obsoleteAttributes.Any())
         {
             document.AppendHeader("Caution", 4);
 
-            string message = attribute.First().Message;
+            string message = obsoleteAttributes.First().Message;
             if (string.IsNullOrEmpty(message))
             {
                 document.AppendParagraph(defaultMessage);
