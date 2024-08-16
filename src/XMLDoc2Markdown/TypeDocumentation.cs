@@ -216,6 +216,7 @@ internal partial class TypeDocumentation
             "example" => this.XNodesToMarkdownParagraph(element.Nodes()),
             "code" => new MarkdownCode("csharp", FormatCodeElementValue(element.Value)),
             "list" => this.XElementToMarkdownList(element),
+            "paramref" => new MarkdownInlineCode(element.Attribute("name")?.Value),
             _ => new MarkdownText(element.Value)
         };
     }
