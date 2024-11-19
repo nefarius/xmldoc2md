@@ -57,6 +57,7 @@ internal sealed class AssemblyResolver
             NuGetFramework.Parse("net6.0"),
             NuGetFramework.Parse("net7.0"),
             NuGetFramework.Parse("net8.0"),
+            NuGetFramework.Parse("net9.0"),
             NuGetFramework.Parse(".NETFramework,Version=v4.5"),
             NuGetFramework.Parse(".NETFramework,Version=v4.5.1"),
             NuGetFramework.Parse(".NETFramework,Version=v4.5.2"),
@@ -104,7 +105,7 @@ internal sealed class AssemblyResolver
                 return resolvedAssembly;
             }
 
-            // Try to find best matching copy based on major version
+            // Try to find the best matching copy based on the major version
             packageDir = Path.Combine(directory, assemblyName.Name!.ToLowerInvariant());
             if (Directory.Exists(packageDir))
             {
