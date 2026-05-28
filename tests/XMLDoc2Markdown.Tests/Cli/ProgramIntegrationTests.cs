@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Xunit;
@@ -15,24 +16,42 @@ public class ProgramIntegrationTests
     private static string FixturesDllPath =>
         typeof(XMLDoc2Markdown.TestFixtures.SimpleRecord).Assembly.Location;
 
+    // Serialise console redirection so parallel tests don't stomp each other.
+    private static readonly object ConsoleLock = new();
+
+    /// <summary>
+    /// Invokes Program.Main via reflection, capturing stdout/stderr.
+    /// Throws <see cref="InvalidOperationException"/> when the CLI exits non-zero.
+    /// </summary>
     private static string RunCli(string[] args)
     {
-        // Capture stdout/stderr for assertion
-        var writer = new StringWriter();
-        Console.SetOut(writer);
-        Console.SetError(writer);
-        try
+        lock (ConsoleLock)
         {
-            // Use the real Main entry point via reflection to keep the test isolated
-            int exit = (int)typeof(Program)
-                .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic)!
-                .Invoke(null, [args])!;
+            var writer = new StringWriter();
+            TextWriter stdOut = Console.Out;
+            TextWriter stdErr = Console.Error;
+            Console.SetOut(writer);
+            Console.SetError(writer);
+            int exit;
+            try
+            {
+                exit = (int)typeof(Program)
+                    .GetMethod("Main", BindingFlags.Static | BindingFlags.NonPublic)!
+                    .Invoke(null, [args])!;
+            }
+            finally
+            {
+                Console.SetOut(stdOut);
+                Console.SetError(stdErr);
+            }
+
+            if (exit != 0)
+            {
+                throw new InvalidOperationException(
+                    $"CLI exited with code {exit}. Output:\n{writer}");
+            }
+
             return writer.ToString();
-        }
-        finally
-        {
-            Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
-            Console.SetError(new StreamWriter(Console.OpenStandardError()) { AutoFlush = true });
         }
     }
 
@@ -154,18 +173,30 @@ public class ProgramIntegrationTests
     [Fact]
     public void Run_WithExternalDocs_MapIsApplied()
     {
+        const string customBase = "https://example.docs.test/api";
+
+        // Write a mapping file: map "System" to our custom base URL so we can
+        // assert the URL appears in the generated output.
+        string mapFile = Path.GetTempFileName();
         string outDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(outDir);
         try
         {
-            // The fixture ExternalCrefClass has a cref to System.Collections.Generic.Dictionary
-            // The System namespace is already mapped by default; confirm no warnings are the only check here
-            RunCli([FixturesDllPath, outDir]);
-            // Just ensure it doesn't crash — detailed link checking is in TypeDocumentationTests
-            Directory.GetFiles(outDir, "*.md").Should().NotBeEmpty();
+            File.WriteAllText(mapFile, $"{{\"System\":\"{customBase}\"}}");
+
+            // ExternalCrefClass has a <see cref="System.Collections.Generic.Dictionary{...}"/>
+            // which should be resolved via the mapping.
+            RunCli([FixturesDllPath, outDir, $"--external-docs-file={mapFile}"]);
+
+            string[] mdFiles = Directory.GetFiles(outDir, "*.md");
+            mdFiles.Should().NotBeEmpty();
+
+            bool foundLink = mdFiles.Any(f => File.ReadAllText(f).Contains(customBase));
+            foundLink.Should().BeTrue("at least one generated file should contain the external docs base URL");
         }
         finally
         {
+            File.Delete(mapFile);
             Directory.Delete(outDir, recursive: true);
         }
     }
@@ -181,12 +212,10 @@ public class ProgramIntegrationTests
         {
             RunCli([FixturesDllPath, outDir]);
             string recordFile = Path.Combine(outDir, "xmldoc2markdown.testfixtures.simplerecord.md");
-            if (File.Exists(recordFile))
-            {
-                string content = File.ReadAllText(recordFile);
-                content.Should().Contain("record");
-                content.Should().NotContain("IEquatable");
-            }
+            File.Exists(recordFile).Should().BeTrue($"expected page '{recordFile}' to be generated");
+            string content = File.ReadAllText(recordFile);
+            content.Should().Contain("record");
+            content.Should().NotContain("IEquatable");
         }
         finally
         {

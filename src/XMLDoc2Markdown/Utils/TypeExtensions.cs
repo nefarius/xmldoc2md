@@ -208,13 +208,10 @@ internal static class TypeExtensions
 
             if (type.IsClass && type.BaseType != null && type.BaseType != typeof(object))
             {
-                // For records, the compiler-generated base (e.g. System.Object already excluded) is
-                // still emitted if it's not the special record base type.
                 Type baseType = type.BaseType;
-                bool isRecordBase = isRecord &&
-                                    (baseType.FullName == "System.Object" ||
-                                     (baseType.IsRecord() && baseType == type.BaseType));
-                if (!isRecordBase)
+                // Only suppress System.Object (already guarded above); real record bases are shown.
+                bool isObjectBase = isRecord && baseType.FullName == "System.Object";
+                if (!isObjectBase)
                 {
                     baseTypeAndInterfaces.Add(baseType);
                 }
@@ -333,6 +330,17 @@ internal static class TypeExtensions
 
         if (!string.IsNullOrEmpty(type.FullName)) // Generic type does not have full name
         {
+            // User-configured external docs take precedence over the built-in MSDocsUrl fallback
+            // so that callers can redirect BCL links to a mirror or intranet copy.
+            if (externalDocsResolver != null && type.Assembly != assembly)
+            {
+                string externalUrl = externalDocsResolver.TryGetUrl(type);
+                if (externalUrl != null)
+                {
+                    return new MarkdownLink(text, externalUrl);
+                }
+            }
+
             if (type.Assembly == typeof(string).Assembly)
             {
                 return new MarkdownLink(text, type.GetMSDocsUrl());
@@ -340,16 +348,6 @@ internal static class TypeExtensions
             else if (type.Assembly == assembly)
             {
                 return new MarkdownLink(text, type.GetInternalDocsUrl(noExtension, noPrefix));
-            }
-
-            // External type — try external docs map
-            if (externalDocsResolver != null)
-            {
-                string externalUrl = externalDocsResolver.TryGetUrl(type);
-                if (externalUrl != null)
-                {
-                    return new MarkdownLink(text, externalUrl);
-                }
             }
         }
 
@@ -377,31 +375,9 @@ internal static class TypeExtensions
         }
 
         // Link the open generic itself
-        MarkdownInlineElement outerLink;
-        if (!string.IsNullOrEmpty(openGeneric.FullName))
-        {
-            if (openGeneric.Assembly == typeof(string).Assembly)
-            {
-                outerLink = new MarkdownLink(baseName, openGeneric.GetMSDocsUrl());
-            }
-            else if (openGeneric.Assembly == assembly)
-            {
-                outerLink = new MarkdownLink(baseName, openGeneric.GetInternalDocsUrl(noExtension, noPrefix));
-            }
-            else if (externalDocsResolver != null)
-            {
-                string url = externalDocsResolver.TryGetUrl(openGeneric);
-                outerLink = url != null ? new MarkdownLink(baseName, url) : (MarkdownInlineElement)new MarkdownText(baseName);
-            }
-            else
-            {
-                outerLink = new MarkdownText(baseName);
-            }
-        }
-        else
-        {
-            outerLink = new MarkdownText(baseName);
-        }
+        MarkdownInlineElement outerLink = ResolveGenericBaseLink(
+            openGeneric, baseName, assembly, noExtension, noPrefix, externalDocsResolver);
+
 
         // Recursively render each generic argument
         Type[] args = type.GetGenericArguments();
@@ -410,6 +386,40 @@ internal static class TypeExtensions
              .ToString()));
 
         return new MarkdownText($"{outerLink}<{argText}>");
+    }
+
+    private static MarkdownInlineElement ResolveGenericBaseLink(
+        Type openGeneric,
+        string baseName,
+        Assembly assembly,
+        bool noExtension,
+        bool noPrefix,
+        ExternalDocsResolver externalDocsResolver)
+    {
+        if (!string.IsNullOrEmpty(openGeneric.FullName))
+        {
+            // User-configured resolver takes precedence over the built-in MSDocsUrl fallback.
+            if (externalDocsResolver != null && openGeneric.Assembly != assembly)
+            {
+                string url = externalDocsResolver.TryGetUrl(openGeneric);
+                if (url != null)
+                {
+                    return new MarkdownLink(baseName, url);
+                }
+            }
+
+            if (openGeneric.Assembly == typeof(string).Assembly)
+            {
+                return new MarkdownLink(baseName, openGeneric.GetMSDocsUrl());
+            }
+
+            if (openGeneric.Assembly == assembly)
+            {
+                return new MarkdownLink(baseName, openGeneric.GetInternalDocsUrl(noExtension, noPrefix));
+            }
+        }
+
+        return new MarkdownText(baseName);
     }
 }
 

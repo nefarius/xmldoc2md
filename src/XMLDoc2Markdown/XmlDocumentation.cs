@@ -149,7 +149,12 @@ internal class XmlDocumentationContext
     }
 
     /// <summary>Convenience wrapper: looks up a <see cref="MemberInfo"/> in all sources.</summary>
-    public XElement GetMember(MemberInfo memberInfo) => this._primary.GetMember(memberInfo);
+    public XElement GetMember(MemberInfo memberInfo)
+    {
+        string id = $"{memberInfo.MemberType.GetAlias()}:{memberInfo.GetIdentifier()}";
+        this.TryGetMember(id, out XElement xml, out _);
+        return xml;
+    }
 
     /// <summary>Looks up a raw documentation ID across all XML sources.</summary>
     public XElement GetMemberById(string id)

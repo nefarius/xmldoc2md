@@ -87,7 +87,8 @@ internal class ExternalDocsResolver
         // Longest-prefix match
         string urlBase = this._mappings
             .OrderByDescending(m => m.Prefix.Length)
-            .Where(m => ns == m.Prefix || ns.StartsWith(m.Prefix + ".", StringComparison.OrdinalIgnoreCase))
+            .Where(m => string.Equals(ns, m.Prefix, StringComparison.OrdinalIgnoreCase) ||
+                        ns.StartsWith(m.Prefix + ".", StringComparison.OrdinalIgnoreCase))
             .Select(m => m.UrlBase)
             .FirstOrDefault();
 
@@ -127,7 +128,7 @@ internal class ExternalDocsResolver
 
         return this._mappings
             .OrderByDescending(m => m.Prefix.Length)
-            .Where(m => namespaceName == m.Prefix ||
+            .Where(m => string.Equals(namespaceName, m.Prefix, StringComparison.OrdinalIgnoreCase) ||
                         namespaceName.StartsWith(m.Prefix + ".", StringComparison.OrdinalIgnoreCase))
             .Select(m => m.UrlBase)
             .FirstOrDefault();

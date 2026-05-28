@@ -1033,14 +1033,23 @@ internal partial class TypeDocumentation
     /// </summary>
     private static bool IsRecordCompilerGeneratedMethod(MethodInfo method)
     {
-        return method.Name is
-            "<Clone>$" or
-            "PrintMembers" or
-            "op_Equality" or
-            "op_Inequality" or
-            "Deconstruct" ||
-               // Equals(object) and GetHashCode overrides on records are compiler-generated
-               (method.Name == "Equals" && method.GetParameters().Length == 1 &&
+        bool isCompilerGenerated = method.IsDefined(
+            typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), inherit: false);
+
+        // Names that are always compiler-synthesised (no user-authored form exists)
+        if (method.Name is "<Clone>$" or "PrintMembers" or "op_Equality" or "op_Inequality" or "Deconstruct")
+        {
+            return true;
+        }
+
+        // Equals(object), GetHashCode() and ToString() are only suppressed when the
+        // compiler itself generated them; user overrides lack the attribute.
+        if (!isCompilerGenerated)
+        {
+            return false;
+        }
+
+        return (method.Name == "Equals" && method.GetParameters().Length == 1 &&
                 method.GetParameters()[0].ParameterType == typeof(object)) ||
                (method.Name == "GetHashCode" && method.GetParameters().Length == 0) ||
                (method.Name == "ToString" && method.GetParameters().Length == 0 &&

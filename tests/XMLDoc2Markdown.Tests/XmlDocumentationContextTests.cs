@@ -132,14 +132,10 @@ public class XmlDocumentationContextTests
             File.WriteAllText(Path.Combine(dir, "PrimaryAssembly.xml"), xmlContent);
             ctx.AddSearchDirectory(dir);
 
-            // Should NOT find the duplicate via secondary lookup
+            // Should NOT find the duplicate — the XML file has the same assembly name as the primary
+            // and is therefore skipped by AddSearchDirectory to prevent double-registration.
             bool found = ctx.TryGetMember("T:MyNamespace.Duplicate", out _, out string source);
-            // It won't be found because the file was skipped as duplicate of primary
-            // (primary doesn't have this entry either, so the result is simply not found)
-            if (found)
-            {
-                source.Should().NotBe("PrimaryAssembly", "the primary is not re-added as secondary");
-            }
+            found.Should().BeFalse("the file matching the primary assembly name must not be added as secondary");
         }
         finally
         {

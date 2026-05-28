@@ -112,21 +112,22 @@ public class InheritDocResolverTests
     [Fact]
     public void Resolve_CircularInheritdoc_DoesNotStackOverflow()
     {
-        // Synthetic cycle: A.Foo inherits B.Foo, B.Foo inherits A.Foo
-        // We can't easily create a real type cycle, but we can test the visited-set path
-        // by having a member's doc point back to itself via cref
+        // Build a self-referential cref cycle using a real MemberInfo so that
+        // InheritDocResolver.Resolve is actually invoked (not just the context lookup).
+        MethodInfo method = typeof(ExplicitInheritDocClass).GetMethod("ComputeArea")!;
+        string id = $"M:{method.DeclaringType!.FullName}.{method.Name}";
+
         var elements = new[]
         {
-            XElement.Parse("""<member name="M:SomeType.Foo"><inheritdoc cref="M:SomeType.Foo"/></member>"""),
+            // The element inherits from itself — a direct cref cycle
+            XElement.Parse($"""<member name="{id}"><inheritdoc cref="{id}"/></member>"""),
         };
         var doc = new XmlDocumentation("TestAssembly", elements);
         var ctx = new XmlDocumentationContext(doc);
 
-        // Manually exercise ResolveFromCref cycle path through the context
-        ctx.TryGetMember("M:SomeType.Foo", out XElement found, out _).Should().BeTrue();
-        // Calling resolve on this should not throw or hang
-        // (we use GetMemberById to drive the cycle via the public API)
-        XElement result = ctx.GetMemberById("M:SomeType.Foo");
-        result.Should().NotBeNull(); // The raw element is returned (cycle is broken)
+        // Must not throw StackOverflowException or hang; resolver should detect the cycle
+        // and return null rather than looping indefinitely.
+        XElement result = InheritDocResolver.Resolve(method, ctx);
+        result.Should().BeNull("the cycle should be detected and broken by the visited-set guard");
     }
 }

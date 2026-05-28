@@ -208,7 +208,7 @@ internal class Program
             }
             
             AssemblyResolver resolver = new();
-            string srcDir = Path.GetDirectoryName(src);
+            string srcDir = Path.GetDirectoryName(Path.GetFullPath(src)) ?? Environment.CurrentDirectory;
             resolver.AddSearchDirectory(srcDir);
 
             Assembly assembly = new AssemblyLoadContext(src)
