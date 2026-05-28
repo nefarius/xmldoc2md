@@ -327,3 +327,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Verify snapshot testing — received files are transient and should never be committed
+*.received.*

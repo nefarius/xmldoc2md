@@ -6,7 +6,23 @@
     <Nullable>disable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- Single source of truth; bump intentionally to refresh the golden snapshot -->
+    <EtwSampleVersion>2.10.2</EtwSampleVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- PackageDownload: restores into the global packages folder WITHOUT a compile reference,
+         bypassing the TFM-compatibility check for net9.0-windows8.0 packages. -->
+    <PackageDownload Include="Nefarius.Utilities.ETW" Version="[$(EtwSampleVersion)]" />
+    <PackageDownload Include="FastMember" Version="[1.5.0]" />
+    <PackageDownload Include="KaitaiStruct.Runtime.CSharp" Version="[0.11.0]" />
+    <PackageDownload Include="Nefarius.Shared.PdbUtils" Version="[1.0.0]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Expose the pinned version so tests can build the NuGet path without hardcoding -->
+    <AssemblyMetadata Include="EtwSampleVersion" Value="$(EtwSampleVersion)" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="xunit.v3" Version="3.2.2" />

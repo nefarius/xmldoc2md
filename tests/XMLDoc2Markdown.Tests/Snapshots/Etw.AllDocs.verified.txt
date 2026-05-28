@@ -1,0 +1,3173 @@
+﻿===== index.md =====
+# Assembly Nefarius.Utilities.ETW
+
+## Namespace Nefarius.Utilities.ETW
+
+- [EtwClockResolution](./nefarius.utilities.etw.etwclockresolution.md)
+
+- [EtwJsonConverterOptions](./nefarius.utilities.etw.etwjsonconverteroptions.md)
+
+- [EtwMetadataScanOptions](./nefarius.utilities.etw.etwmetadatascanoptions.md)
+
+- [EtwRealtimeSession](./nefarius.utilities.etw.etwrealtimesession.md)
+
+- [EtwRealtimeSessionOptions](./nefarius.utilities.etw.etwrealtimesessionoptions.md)
+
+- [EtwUtil](./nefarius.utilities.etw.etwutil.md)
+
+- [TraceEventLevel](./nefarius.utilities.etw.traceeventlevel.md)
+
+## Namespace Nefarius.Utilities.ETW.Deserializer.WPP
+
+- [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md)
+
+- [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)
+
+- [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md)
+
+- [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md)
+
+- [TmfFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffiledecodingcontexttype.md)
+
+- [TmfFilesDirectoryDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffilesdirectorydecodingcontexttype.md)
+
+## Namespace Nefarius.Utilities.ETW.Deserializer.WPP.TMF
+
+- [FunctionParameter](./nefarius.utilities.etw.deserializer.wpp.tmf.functionparameter.md)
+
+- [ItemType](./nefarius.utilities.etw.deserializer.wpp.tmf.itemtype.md)
+
+- [TmfParser](./nefarius.utilities.etw.deserializer.wpp.tmf.tmfparser.md)
+
+- [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)
+
+- [WppTraceControl](./nefarius.utilities.etw.deserializer.wpp.tmf.wpptracecontrol.md)
+
+## Namespace Nefarius.Utilities.ETW.Events
+
+- [DbgIdRsdsEventInfo](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md)
+
+- [ImageIdEventInfo](./nefarius.utilities.etw.events.imageideventinfo.md)
+
+- [ImageIdFileVersionEventInfo](./nefarius.utilities.etw.events.imageidfileversioneventinfo.md)
+
+- [KernelDbgIdRsdsEventInfo](./nefarius.utilities.etw.events.kerneldbgidrsdseventinfo.md)
+
+## Namespace Nefarius.Utilities.ETW.Exceptions
+
+- [EtwEnableTraceException](./nefarius.utilities.etw.exceptions.etwenabletraceexception.md)
+
+- [EtwOpenTraceException](./nefarius.utilities.etw.exceptions.etwopentraceexception.md)
+
+- [EtwStartTraceException](./nefarius.utilities.etw.exceptions.etwstarttraceexception.md)
+
+- [TdhGetEventInformationException](./nefarius.utilities.etw.exceptions.tdhgeteventinformationexception.md)
+
+- [TdhGetPropertyException](./nefarius.utilities.etw.exceptions.tdhgetpropertyexception.md)
+
+- [TdhGetPropertySizeException](./nefarius.utilities.etw.exceptions.tdhgetpropertysizeexception.md)
+
+- [TdhGetWppPropertyException](./nefarius.utilities.etw.exceptions.tdhgetwpppropertyexception.md)
+
+===== nefarius.utilities.etw.deserializer.wpp.decodingcontext.md =====
+# DecodingContext
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP
+
+WPP decoding context used to extract TMF information from resources like `.PDB` or `.TMF` files.
+
+```csharp
+public sealed class DecodingContext
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-providerguids"/>**ProviderGuids**
+
+The deduplicated union of all WPP trace control GUIDs (= ETW provider GUIDs) across every
+ underlying [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md). Each GUID corresponds to one
+ `WPP_DEFINE_CONTROL_GUID` declaration found in the loaded PDB files.
+ The collection is empty when the context was built from TMF files only.
+
+```csharp
+public IReadOnlyCollection<Guid> ProviderGuids { get; }
+```
+
+#### Property Value
+
+[IReadOnlyCollection](https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlycollection-1)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid)><br>
+
+## Constructors
+
+### <a id="constructors-.ctor"/>**DecodingContext(IList&lt;DecodingContextType&gt;)**
+
+New decoding context instance.
+
+```csharp
+public DecodingContext(IList<DecodingContextType> decodingTypes)
+```
+
+#### Parameters
+
+`decodingTypes` [IList](https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1)<[DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)><br>
+One or more [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)s to look up decoding information in.
+
+## Methods
+
+### <a id="methods-extendwith"/>**ExtendWith(IList&lt;DecodingContextType&gt;)**
+
+Creates a new [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md) instance with additionally provided [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)
+ s.
+
+```csharp
+public DecodingContext ExtendWith(IList<DecodingContextType> additionalDecodingTypes)
+```
+
+#### Parameters
+
+`additionalDecodingTypes` [IList](https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1)<[DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)><br>
+One or more [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)s to be added to this instances'
+ types.
+
+#### Returns
+
+The extended [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md) instance.
+
+### <a id="methods-gettracemessageformatfor"/>**GetTraceMessageFormatFor(Nullable&lt;Guid&gt;, Int32)**
+
+```csharp
+internal TraceMessageFormat GetTraceMessageFormatFor(Nullable<Guid> messageGuid, int id)
+```
+
+#### Parameters
+
+`messageGuid` [Nullable](https://learn.microsoft.com/dotnet/api/system.nullable-1)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid)><br>
+
+`id` [Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+#### Returns
+
+[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)
+
+===== nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md =====
+# DecodingContextType
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP
+
+Describes a decoding source for use with one or more [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md)s.
+
+```csharp
+public abstract class DecodingContextType
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-providerguids"/>**ProviderGuids**
+
+The distinct set of WPP trace control GUIDs (= ETW provider GUIDs) available from this
+ decoding source. Subclasses that carry the provider GUID — currently only
+ [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md) via its `TMC:` annotations — override this
+ property. TMF-only sources return an empty collection because `.tmf` files only
+ contain per-call-site message hash GUIDs, not the WPP control GUID.
+
+```csharp
+public IEnumerable<Guid> ProviderGuids { get; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid)><br>
+
+### <a id="properties-tracemessageformats"/>**TraceMessageFormats**
+
+Collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)s of this [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md).
+
+```csharp
+public IEnumerable<TraceMessageFormat> TraceMessageFormats { get; protected set; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)><br>
+
+===== nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md =====
+# PdbFileDecodingContextType
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP
+
+A [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md) parsing one or more given `.pdb` files.
+
+```csharp
+public sealed class PdbFileDecodingContextType : DecodingContextType
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md) → [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-providerguids"/>**ProviderGuids**
+
+The distinct set of WPP trace control GUIDs (= ETW provider GUIDs) available from this
+ decoding source. Subclasses that carry the provider GUID — currently only
+ [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md) via its `TMC:` annotations — override this
+ property. TMF-only sources return an empty collection because `.tmf` files only
+ contain per-call-site message hash GUIDs, not the WPP control GUID.
+
+```csharp
+public IEnumerable<Guid> ProviderGuids { get; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid)><br>
+
+### <a id="properties-tracemessageformats"/>**TraceMessageFormats**
+
+Collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)s of this [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md).
+
+```csharp
+public IEnumerable<TraceMessageFormat> TraceMessageFormats { get; protected set; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)><br>
+
+### <a id="properties-wpptracecontrols"/>**WppTraceControls**
+
+The WPP trace control blocks discovered in this PDB — one entry per
+ `WPP_DEFINE_CONTROL_GUID` declaration found in the symbol stream.
+ Each entry contains the provider GUID, its friendly name, and the declared
+ `WPP_DEFINE_BIT` flag names.
+
+```csharp
+public IReadOnlyCollection<WppTraceControl> WppTraceControls { get; private set; }
+```
+
+#### Property Value
+
+[IReadOnlyCollection](https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlycollection-1)<[WppTraceControl](./nefarius.utilities.etw.deserializer.wpp.tmf.wpptracecontrol.md)><br>
+
+## Constructors
+
+### <a id="constructors-.ctor"/>**PdbFileDecodingContextType()**
+
+A [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md) parsing one or more given `.pdb` files.
+
+```csharp
+public PdbFileDecodingContextType()
+```
+
+### <a id="constructors-.ctor"/>**PdbFileDecodingContextType(String)**
+
+Gets decoding info from one or multiple `.pdb` files by file path.
+
+```csharp
+public PdbFileDecodingContextType(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Relative or absolute path to a `.pdb` file.
+
+### <a id="constructors-.ctor"/>**PdbFileDecodingContextType(Stream)**
+
+Gets decoding info from a stream containing PDB file data.
+
+```csharp
+public PdbFileDecodingContextType(Stream stream)
+```
+
+#### Parameters
+
+`stream` [Stream](https://learn.microsoft.com/dotnet/api/system.io.stream)<br>
+A stream containing a `.pdb` file.
+
+## Methods
+
+### <a id="methods-createfrom"/>**CreateFrom(IList&lt;String&gt;)**
+
+Converts a list of paths to `*.pdb` files into their corresponding
+ [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md) objects.
+
+```csharp
+public static IList<DecodingContextType> CreateFrom(IList<String> pathList)
+```
+
+#### Parameters
+
+`pathList` [IList](https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+One or more paths to `.pdb` files.
+
+#### Returns
+
+One or more [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md)s.
+
+### <a id="methods-enumerateproviderguids"/>**EnumerateProviderGuids(String)**
+
+Convenience helper that parses a single `.pdb` file and returns the distinct set of
+ WPP trace control GUIDs (= ETW provider GUIDs) embedded in it.
+
+```csharp
+public static IReadOnlyCollection<Guid> EnumerateProviderGuids(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Relative or absolute path to a `.pdb` file.
+
+#### Returns
+
+A distinct, read-only collection of [Guid](https://learn.microsoft.com/dotnet/api/system.guid)s — one per
+ `WPP_DEFINE_CONTROL_GUID` block found in the PDB. The collection is empty if the
+ PDB contains no WPP `TMC:` annotations.
+
+### <a id="methods-enumeratetracecontrols"/>**EnumerateTraceControls(String)**
+
+Convenience helper that parses a single `.pdb` file and returns the full
+ [WppTraceControl](./nefarius.utilities.etw.deserializer.wpp.tmf.wpptracecontrol.md) records found in it — including the provider GUID,
+ friendly name, and `WPP_DEFINE_BIT` flag names.
+
+```csharp
+public static IReadOnlyCollection<WppTraceControl> EnumerateTraceControls(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Relative or absolute path to a `.pdb` file.
+
+#### Returns
+
+A read-only collection of [WppTraceControl](./nefarius.utilities.etw.deserializer.wpp.tmf.wpptracecontrol.md)s, deduplicated by
+ [WppTraceControl.ControlGuid](./nefarius.utilities.etw.deserializer.wpp.tmf.wpptracecontrol.md#controlguid). Empty if the PDB has no WPP annotations.
+
+===== nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md =====
+# PdbMetaData
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP
+
+Describes a Program DataBase metaobject extracted from the provided trace.
+
+```csharp
+public struct PdbMetaData
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md)<br>
+Implements [IEquatable](https://learn.microsoft.com/dotnet/api/system.iequatable-1)<[PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md)><br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute), [IsReadOnlyAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.isreadonlyattribute), [RequiredMemberAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.requiredmemberattribute)
+
+## Properties
+
+### <a id="properties-age"/>**Age**
+
+The age a.k.a. the revision of the build of the symbol file.
+
+```csharp
+public int Age { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-downloadpath"/>**DownloadPath**
+
+Gets the typical symbol server download path.
+
+```csharp
+public string DownloadPath { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-guid"/>**Guid**
+
+The GUID uniquely identifying the symbol file.
+
+```csharp
+public Guid Guid { get; set; }
+```
+
+#### Property Value
+
+[Guid](https://learn.microsoft.com/dotnet/api/system.guid)<br>
+
+### <a id="properties-indexprefix"/>**IndexPrefix**
+
+Index prefix (relative path name) of the symbol to lookup on a symbol server.
+
+```csharp
+public string IndexPrefix { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+**Remarks:**
+
+For example
+ hidhide.pdb/779e56ef8d244145a64a3aee304b9de91/hidhide.pdb
+
+### <a id="properties-pdbname"/>**PdbName**
+
+The full path of the PDB extracted from the session information.
+
+```csharp
+public string PdbName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+## Methods
+
+### <a id="methods-equals"/>**Equals(PdbMetaData)**
+
+```csharp
+bool Equals(PdbMetaData other)
+```
+
+#### Parameters
+
+`other` [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+### <a id="methods-equals"/>**Equals(Object)**
+
+```csharp
+bool Equals(object obj)
+```
+
+#### Parameters
+
+`obj` [Object](https://learn.microsoft.com/dotnet/api/system.object)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+### <a id="methods-gethashcode"/>**GetHashCode()**
+
+```csharp
+int GetHashCode()
+```
+
+#### Returns
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)
+
+===== nefarius.utilities.etw.deserializer.wpp.tmf.functionparameter.md =====
+# FunctionParameter
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP.TMF
+
+```csharp
+public struct FunctionParameter
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [FunctionParameter](./nefarius.utilities.etw.deserializer.wpp.tmf.functionparameter.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute), [IsReadOnlyAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.isreadonlyattribute), [RequiredMemberAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.requiredmemberattribute)
+
+## Properties
+
+### <a id="properties-expression"/>**Expression**
+
+The expression (variable) passed to the function parameter.
+
+```csharp
+public string Expression { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-index"/>**Index**
+
+The index used in the message format string to substitute this type with.
+
+```csharp
+public int Index { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-listitems"/>**ListItems**
+
+List item values as their string representation.
+
+```csharp
+public IReadOnlyDictionary<Int32, String> ListItems { get; set; }
+```
+
+#### Property Value
+
+[IReadOnlyDictionary](https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlydictionary-2)<[Int32](https://learn.microsoft.com/dotnet/api/system.int32), [String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+
+**Remarks:**
+
+Only populated if [FunctionParameter.Type](./nefarius.utilities.etw.deserializer.wpp.tmf.functionparameter.md#type) is [ItemType.ItemListByte](./nefarius.utilities.etw.deserializer.wpp.tmf.itemtype.md#itemlistbyte).
+
+### <a id="properties-type"/>**Type**
+
+The data type of the function parameter.
+
+```csharp
+public ItemType Type { get; set; }
+```
+
+#### Property Value
+
+[ItemType](./nefarius.utilities.etw.deserializer.wpp.tmf.itemtype.md)<br>
+
+===== nefarius.utilities.etw.deserializer.wpp.tmf.itemtype.md =====
+# ItemType
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP.TMF
+
+Possible trace message parameter types.
+
+```csharp
+public enum ItemType
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [Enum](https://learn.microsoft.com/dotnet/api/system.enum) → [ItemType](./nefarius.utilities.etw.deserializer.wpp.tmf.itemtype.md)<br>
+Implements [IComparable](https://learn.microsoft.com/dotnet/api/system.icomparable), [ISpanFormattable](https://learn.microsoft.com/dotnet/api/system.ispanformattable), [IFormattable](https://learn.microsoft.com/dotnet/api/system.iformattable), [IConvertible](https://learn.microsoft.com/dotnet/api/system.iconvertible)
+
+**Remarks:**
+
+Sourced from
+ https://learn.microsoft.com/en-us/windows/win32/wes/eventmanifestschema-inputtype-complextype#remarkshttps://learn.microsoft.com/en-us/windows/win32/wes/eventmanifestschema-outputtype-complextype#remarkshttps://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/what-are-the-wpp-extended-format-specification-strings-#return-codesC:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\WppConfig\Rev1\defaultwpp.ini
+
+## Fields
+
+| Name | Value | Description |
+| --- | --: | --- |
+| ItemLongLongXX | 1 | A hexadecimal number that is preceded by "0x". The formatted value is not padded with leading zeros. |
+| ItemLong | 6 | A 32-Bit (signed) integer. |
+| ItemLongLong | 7 | A signed 64-bit integer. |
+| ItemULongLong | 8 | An unsigned 64-bit integer. |
+| ItemDouble | 9 | An IEEE 8-byte floating-point number. |
+| ItemPtr | 10 | An unsigned 32-bit or 64-bit pointer value. The size depends on the architecture of the computer logging the event. |
+| ItemGuid | 11 | A GUID value that is formatted in the registry string form, {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}. |
+| ItemListByte | 20 | A list of one or more zero-indexed array items, byte-sized index. |
+| ItemListShort | 21 | A list of one or more zero-indexed array items, 16-bit (short) index. |
+| ItemListLong | 22 | A list of one or more zero-indexed array items, 32-bit (long) index. |
+| ItemSetByte | 23 | A bitset enum whose items are addressed by bit position (0 = bit 0), byte-sized value. |
+| ItemSetShort | 24 | A bitset enum whose items are addressed by bit position, 16-bit value. |
+| ItemSetLong | 25 | A bitset enum whose items are addressed by bit position, 32-bit value. |
+| ItemEnum | 26 | A named enumeration resolved from PDB symbols (UInt32). Displays the raw numeric value when PDB-based name resolution is not available. |
+| ItemFlagsEnum | 27 | A named flags enumeration resolved from PDB symbols (UInt32). Displays the raw hex value when PDB-based name resolution is not available. |
+| ItemNTSTATUS | 28 | An NTSTATUS error code. This type is valid for the UInt32 input type. The service retrieves and renders the message string associated with the NT status code if it exists; otherwise, the service renders a string in the form, "Unknown NTSTATUS Error code: 0x" with the NT status code appended as hexadecimal number. Prior to MC version 1.12.7051 and Windows 7: Not available. |
+| ItemWINERROR | 29 | Represents a Windows error code and displays the string associated with the error. |
+| ItemHRESULT | 30 | Represents an HRESULT error or warning code. |
+| ItemNDIS_STATUS | 31 | An NDIS status code. Formatted the same as [ItemType.ItemNTSTATUS](./nefarius.utilities.etw.deserializer.wpp.tmf.itemtype.md#itemntstatus). |
+| ItemNDIS_OID | 32 | An NDIS OID value displayed as a hexadecimal number. |
+| ItemIPAddr | 33 | An IPv4 address stored as a UInt32 in network byte order. Displayed in dotted-quad notation. |
+| ItemPort | 34 | A TCP/UDP port number stored as a UInt16 in network byte order. |
+| ItemTimestamp | 35 | A 64-bit FILETIME value representing an absolute timestamp. Displayed in ISO-8601 format. Used by `%!TIMESTAMP!`, `%!TIME!`, `%!DATE!`, `%!datetime!`, and `%!WAITTIME!`. |
+| ItemTimeDelta | 36 | A 64-bit value representing a duration in milliseconds, displayed as `day~h:mm:ss`. Used by `%!delta!`. |
+| ItemWaitTime | 37 | A 64-bit FILETIME value representing a wait/due time. Displayed as `day~h:mm:ss`. Used by `%!due!`. |
+| ItemCLSID | 38 | A COM Class ID (CLSID) stored as a GUID. Displayed in registry string form. |
+| ItemLIBID | 39 | A COM Type Library ID (LIBID) stored as a GUID. Displayed in registry string form. |
+| ItemIID | 40 | A COM Interface ID (IID) stored as a GUID. Displayed in registry string form. |
+| ItemChar4 | 41 | A four-character code (FOURCC) stored as a 32-bit integer. Each byte is rendered as a printable ASCII character (non-printable bytes are replaced with a dot). Used by `%!cccc!`. |
+
+===== nefarius.utilities.etw.deserializer.wpp.tmf.tmfparser.md =====
+# TmfParser
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP.TMF
+
+Trace Message Format parsing utilities.
+
+```csharp
+public static class TmfParser
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [TmfParser](./nefarius.utilities.etw.deserializer.wpp.tmf.tmfparser.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Methods
+
+### <a id="methods-extracttracemessageformats"/>**ExtractTraceMessageFormats(IEnumerable&lt;SymProc32AnnotationPair&gt;, String)**
+
+Converts a collection of [SymProc32AnnotationPair](./nefarius.utilities.etw.deserializer.wpp.tmf.symproc32annotationpair.md) into [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)s.
+
+```csharp
+internal static IEnumerable<TraceMessageFormat> ExtractTraceMessageFormats(IEnumerable<SymProc32AnnotationPair> pairs, string originalSymbolFileName)
+```
+
+#### Parameters
+
+`pairs` [IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[SymProc32AnnotationPair](./nefarius.utilities.etw.deserializer.wpp.tmf.symproc32annotationpair.md)><br>
+The source [SymProc32AnnotationPair](./nefarius.utilities.etw.deserializer.wpp.tmf.symproc32annotationpair.md)s to convert.
+
+`originalSymbolFileName` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Optional source file name the data was extracted from.
+
+#### Returns
+
+A collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)s.
+
+### <a id="methods-parsedirectory"/>**ParseDirectory(String)**
+
+Processes a given directory of `.TMF` files and parses them.
+
+```csharp
+public static IEnumerable<TraceMessageFormat> ParseDirectory(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+The directory to search in.
+
+#### Returns
+
+A collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md) entries.
+
+### <a id="methods-parsefile"/>**ParseFile(String)**
+
+Parses a single `.TMF` file.
+
+```csharp
+public static IEnumerable<TraceMessageFormat> ParseFile(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+The path to a `.tmf` file.
+
+#### Returns
+
+A collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md) entries.
+
+===== nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md =====
+# TraceMessageFormat
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP.TMF
+
+Decoding information for WPP events.
+
+```csharp
+public sealed class TraceMessageFormat : System.IEquatable<Nefarius.Utilities.ETW.Deserializer.WPP.TMF.TraceMessageFormat>, System.IComparable<Nefarius.Utilities.ETW.Deserializer.WPP.TMF.TraceMessageFormat>, System.IComparable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)<br>
+Implements [IEquatable](https://learn.microsoft.com/dotnet/api/system.iequatable-1)<[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)>, [IComparable](https://learn.microsoft.com/dotnet/api/system.icomparable-1)<[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)>, [IComparable](https://learn.microsoft.com/dotnet/api/system.icomparable)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute), [RequiredMemberAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.requiredmemberattribute)
+
+## Properties
+
+### <a id="properties-filename"/>**FileName**
+
+```csharp
+public string FileName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-flags"/>**Flags**
+
+```csharp
+public string Flags { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-function"/>**Function**
+
+```csharp
+public string Function { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-functionparameters"/>**FunctionParameters**
+
+```csharp
+public IReadOnlyList<FunctionParameter> FunctionParameters { get; set; }
+```
+
+#### Property Value
+
+[IReadOnlyList](https://learn.microsoft.com/dotnet/api/system.collections.generic.ireadonlylist-1)<[FunctionParameter](./nefarius.utilities.etw.deserializer.wpp.tmf.functionparameter.md)><br>
+
+### <a id="properties-id"/>**Id**
+
+```csharp
+public int Id { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-level"/>**Level**
+
+```csharp
+public string Level { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-messageformat"/>**MessageFormat**
+
+```csharp
+public string MessageFormat { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-messageguid"/>**MessageGuid**
+
+```csharp
+public Guid MessageGuid { get; set; }
+```
+
+#### Property Value
+
+[Guid](https://learn.microsoft.com/dotnet/api/system.guid)<br>
+
+### <a id="properties-opcode"/>**Opcode**
+
+```csharp
+public string Opcode { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-originalsymbolfilename"/>**OriginalSymbolFileName**
+
+```csharp
+public string OriginalSymbolFileName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-provider"/>**Provider**
+
+```csharp
+public string Provider { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+## Constructors
+
+### <a id="constructors-.ctor"/>**TraceMessageFormat()**
+
+#### Caution
+
+Constructors of types with required members are not supported in this version of your compiler.
+
+---
+
+```csharp
+public TraceMessageFormat()
+```
+
+## Methods
+
+### <a id="methods-compareto"/>**CompareTo(Object)**
+
+```csharp
+public int CompareTo(object obj)
+```
+
+#### Parameters
+
+`obj` [Object](https://learn.microsoft.com/dotnet/api/system.object)<br>
+
+#### Returns
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)
+
+### <a id="methods-compareto"/>**CompareTo(TraceMessageFormat)**
+
+```csharp
+public int CompareTo(TraceMessageFormat other)
+```
+
+#### Parameters
+
+`other` [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)<br>
+
+#### Returns
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)
+
+### <a id="methods-equals"/>**Equals(TraceMessageFormat)**
+
+```csharp
+public bool Equals(TraceMessageFormat other)
+```
+
+#### Parameters
+
+`other` [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+### <a id="methods-equals"/>**Equals(Object)**
+
+```csharp
+public bool Equals(object obj)
+```
+
+#### Parameters
+
+`obj` [Object](https://learn.microsoft.com/dotnet/api/system.object)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+### <a id="methods-gethashcode"/>**GetHashCode()**
+
+```csharp
+public int GetHashCode()
+```
+
+#### Returns
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)
+
+===== nefarius.utilities.etw.deserializer.wpp.tmffiledecodingcontexttype.md =====
+# TmfFileDecodingContextType
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP
+
+A [TDH_CONTEXT_TYPE.TDH_CONTEXT_WPP_TMFFILE](./windows.win32.system.diagnostics.etw.tdh_context_type.md#tdh_context_wpp_tmffile) wrapper for use with [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md).
+
+```csharp
+public sealed class TmfFileDecodingContextType : DecodingContextType
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md) → [TmfFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffiledecodingcontexttype.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-providerguids"/>**ProviderGuids**
+
+The distinct set of WPP trace control GUIDs (= ETW provider GUIDs) available from this
+ decoding source. Subclasses that carry the provider GUID — currently only
+ [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md) via its `TMC:` annotations — override this
+ property. TMF-only sources return an empty collection because `.tmf` files only
+ contain per-call-site message hash GUIDs, not the WPP control GUID.
+
+```csharp
+public IEnumerable<Guid> ProviderGuids { get; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid)><br>
+
+### <a id="properties-tracemessageformats"/>**TraceMessageFormats**
+
+Collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)s of this [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md).
+
+```csharp
+public IEnumerable<TraceMessageFormat> TraceMessageFormats { get; protected set; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)><br>
+
+## Constructors
+
+### <a id="constructors-.ctor"/>**TmfFileDecodingContextType()**
+
+A [TDH_CONTEXT_TYPE.TDH_CONTEXT_WPP_TMFFILE](./windows.win32.system.diagnostics.etw.tdh_context_type.md#tdh_context_wpp_tmffile) wrapper for use with [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md).
+
+```csharp
+public TmfFileDecodingContextType()
+```
+
+### <a id="constructors-.ctor"/>**TmfFileDecodingContextType(String)**
+
+Gets decoding info from a single `.tmf` file.
+
+```csharp
+public TmfFileDecodingContextType(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Path to a single `.tmf` file.
+
+## Methods
+
+### <a id="methods-createfrom"/>**CreateFrom(IList&lt;String&gt;)**
+
+Converts a list of paths to `*.tmf` files into their corresponding
+ [TmfFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffiledecodingcontexttype.md) objects.
+
+```csharp
+public static IList<DecodingContextType> CreateFrom(IList<String> pathList)
+```
+
+#### Parameters
+
+`pathList` [IList](https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+One or more paths to `.tmf` files.
+
+#### Returns
+
+One or more [TmfFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffiledecodingcontexttype.md)s.
+
+===== nefarius.utilities.etw.deserializer.wpp.tmffilesdirectorydecodingcontexttype.md =====
+# TmfFilesDirectoryDecodingContextType
+
+Namespace: Nefarius.Utilities.ETW.Deserializer.WPP
+
+A [TDH_CONTEXT_TYPE.TDH_CONTEXT_WPP_TMFSEARCHPATH](./windows.win32.system.diagnostics.etw.tdh_context_type.md#tdh_context_wpp_tmfsearchpath) wrapper for use with
+ [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md).
+
+```csharp
+public sealed class TmfFilesDirectoryDecodingContextType : DecodingContextType
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md) → [TmfFilesDirectoryDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffilesdirectorydecodingcontexttype.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-providerguids"/>**ProviderGuids**
+
+The distinct set of WPP trace control GUIDs (= ETW provider GUIDs) available from this
+ decoding source. Subclasses that carry the provider GUID — currently only
+ [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md) via its `TMC:` annotations — override this
+ property. TMF-only sources return an empty collection because `.tmf` files only
+ contain per-call-site message hash GUIDs, not the WPP control GUID.
+
+```csharp
+public IEnumerable<Guid> ProviderGuids { get; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid)><br>
+
+### <a id="properties-tracemessageformats"/>**TraceMessageFormats**
+
+Collection of extracted [TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)s of this [DecodingContextType](./nefarius.utilities.etw.deserializer.wpp.decodingcontexttype.md).
+
+```csharp
+public IEnumerable<TraceMessageFormat> TraceMessageFormats { get; protected set; }
+```
+
+#### Property Value
+
+[IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[TraceMessageFormat](./nefarius.utilities.etw.deserializer.wpp.tmf.tracemessageformat.md)><br>
+
+## Constructors
+
+### <a id="constructors-.ctor"/>**TmfFilesDirectoryDecodingContextType()**
+
+A [TDH_CONTEXT_TYPE.TDH_CONTEXT_WPP_TMFSEARCHPATH](./windows.win32.system.diagnostics.etw.tdh_context_type.md#tdh_context_wpp_tmfsearchpath) wrapper for use with
+ [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md).
+
+```csharp
+public TmfFilesDirectoryDecodingContextType()
+```
+
+### <a id="constructors-.ctor"/>**TmfFilesDirectoryDecodingContextType(String)**
+
+Gets decoding info from a directory containing multiple `.tmf` files.
+
+```csharp
+public TmfFilesDirectoryDecodingContextType(string path)
+```
+
+#### Parameters
+
+`path` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Path to a directory containing multiple `.tmf` files.
+
+## Methods
+
+### <a id="methods-createfrom"/>**CreateFrom(IList&lt;String&gt;)**
+
+Converts a list of paths to `*.tmf` files into their corresponding
+ [TmfFilesDirectoryDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffilesdirectorydecodingcontexttype.md)
+ objects.
+
+```csharp
+public static IList<DecodingContextType> CreateFrom(IList<String> pathList)
+```
+
+#### Parameters
+
+`pathList` [IList](https://learn.microsoft.com/dotnet/api/system.collections.generic.ilist-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+One or more paths to `*.pdb` files.
+
+#### Returns
+
+One or more [TmfFilesDirectoryDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffilesdirectorydecodingcontexttype.md)s.
+
+===== nefarius.utilities.etw.etwclockresolution.md =====
+# EtwClockResolution
+
+Namespace: Nefarius.Utilities.ETW
+
+Clock source used to timestamp ETW events.
+ Corresponds to the `ClientContext` field of `WNODE_HEADER`.
+
+```csharp
+public enum EtwClockResolution
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [Enum](https://learn.microsoft.com/dotnet/api/system.enum) → [EtwClockResolution](./nefarius.utilities.etw.etwclockresolution.md)<br>
+Implements [IComparable](https://learn.microsoft.com/dotnet/api/system.icomparable), [ISpanFormattable](https://learn.microsoft.com/dotnet/api/system.ispanformattable), [IFormattable](https://learn.microsoft.com/dotnet/api/system.iformattable), [IConvertible](https://learn.microsoft.com/dotnet/api/system.iconvertible)
+
+## Fields
+
+| Name | Value | Description |
+| --- | --: | --- |
+| QueryPerformanceCounter | 1 | Query Performance Counter — highest precision, correlated to wall clock. This is the recommended default. |
+| SystemTime | 2 | System time in 100-nanosecond intervals since 1 January 1601. Lower overhead but coarser resolution than [EtwClockResolution.QueryPerformanceCounter](./nefarius.utilities.etw.etwclockresolution.md#queryperformancecounter). |
+| CpuCycle | 3 | CPU cycle counter. Highest frequency but not correlated to wall-clock time and may not be comparable across processors. |
+
+===== nefarius.utilities.etw.etwjsonconverteroptions.md =====
+# EtwJsonConverterOptions
+
+Namespace: Nefarius.Utilities.ETW
+
+Adjustments for [EtwUtil](./nefarius.utilities.etw.etwutil.md).
+
+```csharp
+public sealed class EtwJsonConverterOptions
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [EtwJsonConverterOptions](./nefarius.utilities.etw.etwjsonconverteroptions.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-customprovidermanifest"/>**CustomProviderManifest**
+
+Custom manifest provider lookup.
+
+```csharp
+public Func<Guid, Stream> CustomProviderManifest { get; set; }
+```
+
+#### Property Value
+
+[Func](https://learn.microsoft.com/dotnet/api/system.func-2)<[Guid](https://learn.microsoft.com/dotnet/api/system.guid), [Stream](https://learn.microsoft.com/dotnet/api/system.io.stream)><br>
+
+### <a id="properties-preserverawtimestamps"/>**PreserveRawTimestamps**
+
+If set, `PROCESS_TRACE_MODE_RAW_TIMESTAMP` will be applied when processing the trace record.
+
+```csharp
+public bool PreserveRawTimestamps { get; set; }
+```
+
+#### Property Value
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)<br>
+
+**Remarks:**
+
+See
+ DUMMYUNIONNAME.ProcessTraceMode
+
+### <a id="properties-reporterror"/>**ReportError**
+
+Reports potential parsing errors.
+
+```csharp
+public Action<String> ReportError { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+
+### <a id="properties-wppdecodingcontext"/>**WppDecodingContext**
+
+[DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md) to read WPP events.
+
+```csharp
+public DecodingContext WppDecodingContext { get; set; }
+```
+
+#### Property Value
+
+[DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md)<br>
+
+**Remarks:**
+
+Build this context by calling [EtwUtil.EnumeratePdbReferences(IEnumerable&lt;String&gt;, Action&lt;EtwMetadataScanOptions&gt;)](./nefarius.utilities.etw.etwutil.md#enumeratepdbreferencesienumerablestring-actionetwmetadatascanoptions) first to discover all PDB
+ references in the trace, resolve each [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md) to its actual `.pdb` file, then
+ construct a [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md) from the resulting
+ [PdbFileDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.pdbfiledecodingcontexttype.md) (or [TmfFilesDirectoryDecodingContextType](./nefarius.utilities.etw.deserializer.wpp.tmffilesdirectorydecodingcontexttype.md)) instances
+ before calling [EtwUtil.ConvertToJson(Utf8JsonWriter, IEnumerable&lt;String&gt;, Action&lt;EtwJsonConverterOptions&gt;)](./nefarius.utilities.etw.etwutil.md#converttojsonutf8jsonwriter-ienumerablestring-actionetwjsonconverteroptions).
+
+===== nefarius.utilities.etw.etwmetadatascanoptions.md =====
+# EtwMetadataScanOptions
+
+Namespace: Nefarius.Utilities.ETW
+
+Adjustments for [EtwUtil.EnumeratePdbReferences(IEnumerable&lt;String&gt;, Action&lt;EtwMetadataScanOptions&gt;)](./nefarius.utilities.etw.etwutil.md#enumeratepdbreferencesienumerablestring-actionetwmetadatascanoptions).
+
+```csharp
+public sealed class EtwMetadataScanOptions
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [EtwMetadataScanOptions](./nefarius.utilities.etw.etwmetadatascanoptions.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-ondbgidrsds"/>**OnDbgIdRsds**
+
+Invoked for every `KernelTraceControl/ImageID/DbgID_RSDS` event (opcode 36, provider
+ `b3e675d7-2554-4f18-830b-2762732560de`) encountered in the trace.
+
+```csharp
+public Action<DbgIdRsdsEventInfo> OnDbgIdRsds { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[DbgIdRsdsEventInfo](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md)><br>
+
+**Remarks:**
+
+Each such event identifies a PDB that was used to instrument the code being traced.
+ The [DbgIdRsdsEventInfo.ToPdbMetaData()](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md#topdbmetadata) helper projects the event into the
+ [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md) shape expected by
+ [EtwJsonConverterOptions.WppDecodingContext](./nefarius.utilities.etw.etwjsonconverteroptions.md#wppdecodingcontext).
+
+### <a id="properties-onimageid"/>**OnImageId**
+
+Invoked for every `KernelTraceControl/ImageID` event (opcode 0, provider
+ `b3e675d7-2554-4f18-830b-2762732560de`) encountered in the trace.
+
+```csharp
+public Action<ImageIdEventInfo> OnImageId { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[ImageIdEventInfo](./nefarius.utilities.etw.events.imageideventinfo.md)><br>
+
+**Remarks:**
+
+These events carry the base address, size, and original file name of a loaded image.
+
+### <a id="properties-onimageidfileversion"/>**OnImageIdFileVersion**
+
+Invoked for every `KernelTraceControl/ImageID/FileVersion` event (opcode 64, provider
+ `b3e675d7-2554-4f18-830b-2762732560de`) encountered in the trace.
+
+```csharp
+public Action<ImageIdFileVersionEventInfo> OnImageIdFileVersion { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[ImageIdFileVersionEventInfo](./nefarius.utilities.etw.events.imageidfileversioneventinfo.md)><br>
+
+**Remarks:**
+
+These events carry the version-resource strings of a loaded image.
+
+### <a id="properties-onkerneldbgidrsds"/>**OnKernelDbgIdRsds**
+
+Invoked for every `MSNT_SystemTrace/EventTrace/DbgIdRSDS` event emitted by the legacy kernel Event Trace
+ provider (`EventTraceGuid`) encountered in the trace.
+
+```csharp
+public Action<KernelDbgIdRsdsEventInfo> OnKernelDbgIdRsds { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[KernelDbgIdRsdsEventInfo](./nefarius.utilities.etw.events.kerneldbgidrsdseventinfo.md)><br>
+
+### <a id="properties-reporterror"/>**ReportError**
+
+Reports potential scanning errors.
+
+```csharp
+public Action<String> ReportError { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+
+===== nefarius.utilities.etw.etwrealtimesession.md =====
+# EtwRealtimeSession
+
+Namespace: Nefarius.Utilities.ETW
+
+Represents an active real-time ETW session that collects events from user-mode providers
+ and delivers them to one or more consumers via [EtwUtil.EnumerateRealtimeEventsAsync(String, Action&lt;EtwJsonConverterOptions&gt;, CancellationToken)](./nefarius.utilities.etw.etwutil.md#enumeraterealtimeeventsasyncstring-actionetwjsonconverteroptions-cancellationtoken).
+
+```csharp
+public sealed class EtwRealtimeSession : System.IDisposable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [EtwRealtimeSession](./nefarius.utilities.etw.etwrealtimesession.md)<br>
+Implements [IDisposable](https://learn.microsoft.com/dotnet/api/system.idisposable)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+**Remarks:**
+
+Creating a session requires elevated privileges (administrator) or
+ `SeSystemProfilePrivilege`. Sessions persist after the process that created them
+ exits; always dispose this object to stop the session, and call
+ [EtwUtil.StopOrphanSession(String)](./nefarius.utilities.etw.etwutil.md#stoporphansessionstring) at startup to clean up sessions left behind by
+ a previous crash.
+
+This class is thread-safe: [EtwRealtimeSession.EnableProvider(Guid, TraceEventLevel, UInt64, UInt64)](./nefarius.utilities.etw.etwrealtimesession.md#enableproviderguid-traceeventlevel-uint64-uint64), [EtwRealtimeSession.DisableProvider(Guid)](./nefarius.utilities.etw.etwrealtimesession.md#disableproviderguid),
+ [EtwRealtimeSession.Flush()](./nefarius.utilities.etw.etwrealtimesession.md#flush), and [EtwRealtimeSession.Dispose()](./nefarius.utilities.etw.etwrealtimesession.md#dispose) may be called from any thread.
+
+## Properties
+
+### <a id="properties-sessionname"/>**SessionName**
+
+Gets the session name passed to [EtwRealtimeSession.Create(String, Action&lt;EtwRealtimeSessionOptions&gt;)](./nefarius.utilities.etw.etwrealtimesession.md#createstring-actionetwrealtimesessionoptions).
+
+```csharp
+public string SessionName { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+## Methods
+
+### <a id="methods-create"/>**Create(String, Action&lt;EtwRealtimeSessionOptions&gt;)**
+
+Creates and starts a real-time ETW session with the specified name.
+
+```csharp
+public static EtwRealtimeSession Create(string sessionName, Action<EtwRealtimeSessionOptions> configure)
+```
+
+#### Parameters
+
+`sessionName` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+A unique name for the session (case-insensitive). If a session with this name
+ already exists, an [EtwStartTraceException](./nefarius.utilities.etw.exceptions.etwstarttraceexception.md) is thrown with
+ ERROR_ALREADY_EXISTS; call
+ [EtwUtil.StopOrphanSession(String)](./nefarius.utilities.etw.etwutil.md#stoporphansessionstring) first to remove the orphan.
+
+`configure` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[EtwRealtimeSessionOptions](./nefarius.utilities.etw.etwrealtimesessionoptions.md)><br>
+Optional delegate to adjust [EtwRealtimeSessionOptions](./nefarius.utilities.etw.etwrealtimesessionoptions.md).
+
+#### Returns
+
+A running [EtwRealtimeSession](./nefarius.utilities.etw.etwrealtimesession.md) instance. Dispose it to stop the session.
+
+#### Exceptions
+
+[ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception)<br>
+`sessionName` is `null`.
+
+[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)<br>
+`sessionName` is empty or whitespace.
+
+[EtwStartTraceException](./nefarius.utilities.etw.exceptions.etwstarttraceexception.md)<br>
+`StartTrace` failed — inspect [Win32Exception.NativeErrorCode](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception.nativeerrorcode).
+ Common causes: ERROR_ACCESS_DENIED (run as administrator),
+ ERROR_ALREADY_EXISTS (orphan session still running).
+
+### <a id="methods-disableprovider"/>**DisableProvider(Guid)**
+
+Disables a previously enabled provider on this session.
+
+```csharp
+public void DisableProvider(Guid providerGuid)
+```
+
+#### Parameters
+
+`providerGuid` [Guid](https://learn.microsoft.com/dotnet/api/system.guid)<br>
+The provider's registration GUID.
+
+#### Exceptions
+
+[ObjectDisposedException](https://learn.microsoft.com/dotnet/api/system.objectdisposedexception)<br>
+The session has been disposed.
+
+[EtwEnableTraceException](./nefarius.utilities.etw.exceptions.etwenabletraceexception.md)<br>
+`EnableTraceEx2` returned a non-zero error code.
+
+### <a id="methods-dispose"/>**Dispose()**
+
+```csharp
+public void Dispose()
+```
+
+**Remarks:**
+
+Stops the ETW session (via `ControlTraceW` with `EVENT_TRACE_CONTROL_STOP`).
+ It is safe to call [EtwRealtimeSession.Dispose()](./nefarius.utilities.etw.etwrealtimesession.md#dispose) more than once.
+ If the native stop call fails the session may persist as an orphan;
+ use [EtwUtil.StopOrphanSession(String)](./nefarius.utilities.etw.etwutil.md#stoporphansessionstring) at next startup to recover.
+
+### <a id="methods-enableprovider"/>**EnableProvider(Guid, TraceEventLevel, UInt64, UInt64)**
+
+Enables a provider on this session, causing it to send events to all real-time consumers.
+
+```csharp
+public void EnableProvider(Guid providerGuid, TraceEventLevel level, ulong matchAnyKeyword, ulong matchAllKeyword)
+```
+
+#### Parameters
+
+`providerGuid` [Guid](https://learn.microsoft.com/dotnet/api/system.guid)<br>
+The provider's registration GUID.
+
+`level` [TraceEventLevel](./nefarius.utilities.etw.traceeventlevel.md)<br>
+Maximum event severity level to receive. Defaults to [TraceEventLevel.Verbose](./nefarius.utilities.etw.traceeventlevel.md#verbose).
+
+`matchAnyKeyword` [UInt64](https://learn.microsoft.com/dotnet/api/system.uint64)<br>
+Bitmask: an event is included if any of the provider's keywords match.
+ Pass [UInt64.MaxValue](https://learn.microsoft.com/dotnet/api/system.uint64.maxvalue) (default) to receive all events.
+
+`matchAllKeyword` [UInt64](https://learn.microsoft.com/dotnet/api/system.uint64)<br>
+Bitmask: an event is included only if all of these keywords are set.
+ Pass `0` (default) to disable the all-keyword filter.
+
+#### Exceptions
+
+[ObjectDisposedException](https://learn.microsoft.com/dotnet/api/system.objectdisposedexception)<br>
+The session has been disposed.
+
+[EtwEnableTraceException](./nefarius.utilities.etw.exceptions.etwenabletraceexception.md)<br>
+`EnableTraceEx2` returned a non-zero error code.
+
+### <a id="methods-flush"/>**Flush()**
+
+Flushes any in-flight event buffers to real-time consumers immediately,
+ without waiting for the next flush-timer tick.
+
+```csharp
+public void Flush()
+```
+
+#### Exceptions
+
+[ObjectDisposedException](https://learn.microsoft.com/dotnet/api/system.objectdisposedexception)<br>
+The session has been disposed.
+
+[Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception)<br>
+`ControlTrace(FLUSH)` returned a non-zero error code.
+
+===== nefarius.utilities.etw.etwrealtimesessionoptions.md =====
+# EtwRealtimeSessionOptions
+
+Namespace: Nefarius.Utilities.ETW
+
+Buffer and timing options for [EtwRealtimeSession](./nefarius.utilities.etw.etwrealtimesession.md).
+
+```csharp
+public sealed class EtwRealtimeSessionOptions
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [EtwRealtimeSessionOptions](./nefarius.utilities.etw.etwrealtimesessionoptions.md)
+
+## Properties
+
+### <a id="properties-buffersizekb"/>**BufferSizeKb**
+
+The size of each ETW buffer in kilobytes. Defaults to `64` KB.
+
+```csharp
+public uint BufferSizeKb { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-clockresolution"/>**ClockResolution**
+
+Clock resolution used to timestamp events.
+ Defaults to [EtwClockResolution.QueryPerformanceCounter](./nefarius.utilities.etw.etwclockresolution.md#queryperformancecounter).
+
+```csharp
+public EtwClockResolution ClockResolution { get; set; }
+```
+
+#### Property Value
+
+[EtwClockResolution](./nefarius.utilities.etw.etwclockresolution.md)<br>
+
+### <a id="properties-flushtimerseconds"/>**FlushTimerSeconds**
+
+How often, in seconds, the session flushes non-full buffers to consumers.
+ Defaults to `1` second. Lower values reduce event delivery latency at
+ the cost of increased flush overhead.
+
+```csharp
+public uint FlushTimerSeconds { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-maximumbuffers"/>**MaximumBuffers**
+
+Maximum number of ETW buffers the session may allocate.
+ When set to `0` (the default), the value is computed as twice
+ [EtwRealtimeSessionOptions.MinimumBuffers](./nefarius.utilities.etw.etwrealtimesessionoptions.md#minimumbuffers) at session-creation time.
+
+```csharp
+public uint MaximumBuffers { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-minimumbuffers"/>**MinimumBuffers**
+
+Minimum number of ETW buffers to allocate.
+ Defaults to [Environment.ProcessorCount](https://learn.microsoft.com/dotnet/api/system.environment.processorcount).
+
+```csharp
+public uint MinimumBuffers { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-reporterror"/>**ReportError**
+
+Reports non-fatal errors encountered during session management.
+
+```csharp
+public Action<String> ReportError { get; set; }
+```
+
+#### Property Value
+
+[Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+
+===== nefarius.utilities.etw.etwutil.md =====
+# EtwUtil
+
+Namespace: Nefarius.Utilities.ETW
+
+ETW utility class.
+
+```csharp
+public static class EtwUtil
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [EtwUtil](./nefarius.utilities.etw.etwutil.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Methods
+
+### <a id="methods-convertrealtimetojson"/>**ConvertRealtimeToJson(Utf8JsonWriter, String, Action&lt;EtwJsonConverterOptions&gt;, CancellationToken)**
+
+Converts a live real-time ETW session to a stream of JSON objects written to
+ `jsonWriter`, blocking until the session ends or
+ `cancellationToken` is cancelled.
+
+```csharp
+public static bool ConvertRealtimeToJson(Utf8JsonWriter jsonWriter, string sessionName, Action<EtwJsonConverterOptions> options, CancellationToken cancellationToken)
+```
+
+#### Parameters
+
+`jsonWriter` [Utf8JsonWriter](https://learn.microsoft.com/dotnet/api/system.text.json.utf8jsonwriter)<br>
+The target JSON writer to write to.
+
+`sessionName` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+The name of an already-running real-time ETW session (e.g., created via
+ [EtwRealtimeSession.Create(String, Action&lt;EtwRealtimeSessionOptions&gt;)](./nefarius.utilities.etw.etwrealtimesession.md#createstring-actionetwrealtimesessionoptions) or `logman start`).
+
+`options` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[EtwJsonConverterOptions](./nefarius.utilities.etw.etwjsonconverteroptions.md)><br>
+Options to further tweak the parsing operation.
+
+`cancellationToken` [CancellationToken](https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken)<br>
+Token that, when cancelled, stops trace processing and returns from this method.
+
+#### Returns
+
+`true` when the session ended normally or was cancelled;
+ `false` if the session could not be opened.
+
+#### Exceptions
+
+[ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception)<br>
+`jsonWriter` or `sessionName` is `null`.
+
+[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)<br>
+`sessionName` is empty or whitespace.
+
+**Remarks:**
+
+WPP decoding in real-time mode requires a pre-built
+ [EtwJsonConverterOptions.WppDecodingContext](./nefarius.utilities.etw.etwjsonconverteroptions.md#wppdecodingcontext) supplied via
+ `options` — the file-based
+ [EtwUtil.EnumeratePdbReferences(IEnumerable&lt;String&gt;, Action&lt;EtwMetadataScanOptions&gt;)](./nefarius.utilities.etw.etwutil.md#enumeratepdbreferencesienumerablestring-actionetwmetadatascanoptions) pre-scan cannot be applied to live sessions.
+
+### <a id="methods-converttojson"/>**ConvertToJson(Utf8JsonWriter, IEnumerable&lt;String&gt;, Action&lt;EtwJsonConverterOptions&gt;)**
+
+Converts one or more .ETL files to a JSON object.
+
+```csharp
+public static bool ConvertToJson(Utf8JsonWriter jsonWriter, IEnumerable<String> inputFiles, Action<EtwJsonConverterOptions> options)
+```
+
+#### Parameters
+
+`jsonWriter` [Utf8JsonWriter](https://learn.microsoft.com/dotnet/api/system.text.json.utf8jsonwriter)<br>
+The target JSON writer to write to.
+
+`inputFiles` [IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+One or more input files.
+
+`options` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[EtwJsonConverterOptions](./nefarius.utilities.etw.etwjsonconverteroptions.md)><br>
+Options to further tweak the parsing operation.
+
+#### Returns
+
+True on success, false otherwise.
+
+### <a id="methods-enumerateeventsasync"/>**EnumerateEventsAsync(IEnumerable&lt;String&gt;, Action&lt;EtwJsonConverterOptions&gt;, CancellationToken)**
+
+Converts one or more .ETL files to a stream of UTF-8 JSON objects, yielding each decoded event
+ as a [ReadOnlyMemory<byte>](https://learn.microsoft.com/dotnet/api/system.readonlymemory-1) as it is produced.
+
+```csharp
+public static IAsyncEnumerable<ReadOnlyMemory<Byte>> EnumerateEventsAsync(IEnumerable<String> inputFiles, Action<EtwJsonConverterOptions> options, CancellationToken cancellationToken)
+```
+
+#### Parameters
+
+`inputFiles` [IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+One or more input files.
+
+`options` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[EtwJsonConverterOptions](./nefarius.utilities.etw.etwjsonconverteroptions.md)><br>
+Options to further tweak the parsing operation.
+
+`cancellationToken` [CancellationToken](https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken)<br>
+Token that, when cancelled, stops trace processing and completes the enumeration.
+
+#### Returns
+
+An [IAsyncEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.iasyncenumerable-1)<T> of raw UTF-8 JSON buffers, one per event. Each buffer contains a
+ self-contained JSON object — `{"Event":{"Timestamp":…,"Properties":[{…}]}}` — with no outer
+ array wrapper. The caller may concatenate or wrap the items as needed.
+
+#### Exceptions
+
+[ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception)<br>
+`inputFiles` is `null`.
+
+[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)<br>
+One or more entries in `inputFiles` are `null`, empty, or consist only of
+ whitespace.
+
+[EtwOpenTraceException](./nefarius.utilities.etw.exceptions.etwopentraceexception.md)<br>
+One of the input files could not be opened by the ETW API.
+
+**Remarks:**
+
+Each [ReadOnlyMemory<byte>](https://learn.microsoft.com/dotnet/api/system.readonlymemory-1) is backed by a buffer rented from
+ [ArrayPool&lt;T&gt;.Shared](https://learn.microsoft.com/dotnet/api/system.buffers.arraypool-1.shared). The buffer is valid only until the next iteration step; the library
+ returns it to the pool when `MoveNextAsync` is called (i.e. at the start of the next
+ `await foreach` loop body). Do not retain references to the memory across iterations.
+
+Trace processing runs on a dedicated background thread so the thread-pool is not blocked by the
+ long-running native `ProcessTrace` call. A bounded channel with a fixed capacity couples the
+ producer to the consumer, applying natural backpressure when the consumer is slower than the trace.
+
+### <a id="methods-enumeratepdbreferences"/>**EnumeratePdbReferences(IEnumerable&lt;String&gt;, Action&lt;EtwMetadataScanOptions&gt;)**
+
+Performs a lightweight pre-scan of one or more `.ETL` files and returns the deduplicated set of
+ [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md) entries discovered in the trace.
+
+```csharp
+public static IReadOnlyCollection<PdbMetaData> EnumeratePdbReferences(IEnumerable<String> inputFiles, Action<EtwMetadataScanOptions> options)
+```
+
+#### Parameters
+
+`inputFiles` [IEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.ienumerable-1)<[String](https://learn.microsoft.com/dotnet/api/system.string)><br>
+One or more input `.etl` files to scan. Must not be `null` and must not
+ contain any `null` or whitespace-only entries.
+
+`options` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[EtwMetadataScanOptions](./nefarius.utilities.etw.etwmetadatascanoptions.md)><br>
+Optional callback to configure scan behaviour. Use it to subscribe to
+ [EtwMetadataScanOptions.OnDbgIdRsds](./nefarius.utilities.etw.etwmetadatascanoptions.md#ondbgidrsds) (`KernelTraceControl/ImageID/DbgID_RSDS`),
+ [EtwMetadataScanOptions.OnKernelDbgIdRsds](./nefarius.utilities.etw.etwmetadatascanoptions.md#onkerneldbgidrsds) (`MSNT_SystemTrace/EventTrace/DbgIdRSDS`),
+ [EtwMetadataScanOptions.OnImageId](./nefarius.utilities.etw.etwmetadatascanoptions.md#onimageid) (`KernelTraceControl/ImageID`), and
+ [EtwMetadataScanOptions.OnImageIdFileVersion](./nefarius.utilities.etw.etwmetadatascanoptions.md#onimageidfileversion) (`KernelTraceControl/ImageID/FileVersion`)
+ event notifications, or to provide a [EtwMetadataScanOptions.ReportError](./nefarius.utilities.etw.etwmetadatascanoptions.md#reporterror) handler.
+
+#### Returns
+
+A deduplicated, read-only collection of every [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md) referenced by the trace.
+ The caller should use these entries to locate or download the corresponding `.pdb` files (or find
+ matching `.tmf` files), then pass the resulting [DecodingContext](./nefarius.utilities.etw.deserializer.wpp.decodingcontext.md) to
+ [EtwUtil.ConvertToJson(Utf8JsonWriter, IEnumerable&lt;String&gt;, Action&lt;EtwJsonConverterOptions&gt;)](./nefarius.utilities.etw.etwutil.md#converttojsonutf8jsonwriter-ienumerablestring-actionetwjsonconverteroptions) via [EtwJsonConverterOptions.WppDecodingContext](./nefarius.utilities.etw.etwjsonconverteroptions.md#wppdecodingcontext).
+
+#### Exceptions
+
+[ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception)<br>
+`inputFiles` is `null`.
+
+[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)<br>
+One or more entries in `inputFiles` are `null`, empty, or consist only of
+ whitespace.
+
+### <a id="methods-enumeraterealtimeeventsasync"/>**EnumerateRealtimeEventsAsync(String, Action&lt;EtwJsonConverterOptions&gt;, CancellationToken)**
+
+Streams decoded events from a live real-time ETW session as UTF-8 JSON objects,
+ yielding each event as a [ReadOnlyMemory<byte>](https://learn.microsoft.com/dotnet/api/system.readonlymemory-1)
+ as it is produced.
+
+```csharp
+public static IAsyncEnumerable<ReadOnlyMemory<Byte>> EnumerateRealtimeEventsAsync(string sessionName, Action<EtwJsonConverterOptions> options, CancellationToken cancellationToken)
+```
+
+#### Parameters
+
+`sessionName` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+The name of an already-running real-time ETW session (e.g., created via
+ [EtwRealtimeSession.Create(String, Action&lt;EtwRealtimeSessionOptions&gt;)](./nefarius.utilities.etw.etwrealtimesession.md#createstring-actionetwrealtimesessionoptions) or `logman start`).
+
+`options` [Action](https://learn.microsoft.com/dotnet/api/system.action-1)<[EtwJsonConverterOptions](./nefarius.utilities.etw.etwjsonconverteroptions.md)><br>
+Options to further tweak the parsing operation.
+
+`cancellationToken` [CancellationToken](https://learn.microsoft.com/dotnet/api/system.threading.cancellationtoken)<br>
+Token that, when cancelled, stops trace processing and completes the enumeration.
+
+#### Returns
+
+An [IAsyncEnumerable](https://learn.microsoft.com/dotnet/api/system.collections.generic.iasyncenumerable-1)<T> of raw UTF-8 JSON buffers, one per event. Each buffer
+ is a self-contained JSON object — `{"Event":{"Timestamp":…,"Properties":[{…}]}}` —
+ with no outer array wrapper. The caller may concatenate or wrap items as needed.
+
+#### Exceptions
+
+[ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception)<br>
+`sessionName` is `null`.
+
+[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)<br>
+`sessionName` is empty or whitespace.
+
+[EtwOpenTraceException](./nefarius.utilities.etw.exceptions.etwopentraceexception.md)<br>
+The session could not be opened by the ETW API.
+
+**Remarks:**
+
+Each [ReadOnlyMemory<byte>](https://learn.microsoft.com/dotnet/api/system.readonlymemory-1) is backed by a buffer rented from
+ [ArrayPool&lt;T&gt;.Shared](https://learn.microsoft.com/dotnet/api/system.buffers.arraypool-1.shared). The buffer is valid only until the next iteration step; the library
+ returns it to the pool when `MoveNextAsync` is called. Do not retain references to the memory
+ across iterations.
+
+Trace processing runs on a dedicated background thread. A bounded channel couples the producer to the
+ consumer, applying natural backpressure. When cancelled, the trace handle is closed from the
+ cancellation callback, causing `ProcessTrace` to return promptly rather than waiting for the
+ next flush-timer tick.
+
+WPP decoding in real-time mode requires a pre-built
+ [EtwJsonConverterOptions.WppDecodingContext](./nefarius.utilities.etw.etwjsonconverteroptions.md#wppdecodingcontext) supplied via
+ `options` — the file-based [EtwUtil.EnumeratePdbReferences(IEnumerable&lt;String&gt;, Action&lt;EtwMetadataScanOptions&gt;)](./nefarius.utilities.etw.etwutil.md#enumeratepdbreferencesienumerablestring-actionetwmetadatascanoptions) pre-scan cannot be
+ applied to live sessions.
+
+### <a id="methods-stoporphansession"/>**StopOrphanSession(String)**
+
+Stops a real-time ETW session by name, ignoring the error if no session with that name exists.
+ Use this at application startup to clean up sessions left behind by a previous crash.
+
+```csharp
+public static void StopOrphanSession(string sessionName)
+```
+
+#### Parameters
+
+`sessionName` [String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+Name of the orphaned session to stop.
+
+#### Exceptions
+
+[ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception)<br>
+`sessionName` is `null`.
+
+[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)<br>
+`sessionName` is empty or whitespace.
+
+===== nefarius.utilities.etw.events.dbgidrsdseventinfo.md =====
+# DbgIdRsdsEventInfo
+
+Namespace: Nefarius.Utilities.ETW.Events
+
+Strongly-typed representation of a `KernelTraceControl/ImageID/DbgID_RSDS` event (opcode 36,
+ provider `b3e675d7-2554-4f18-830b-2762732560de`).
+
+```csharp
+public record struct DbgIdRsdsEventInfo
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [DbgIdRsdsEventInfo](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md)<br>
+Attributes [IsReadOnlyAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.isreadonlyattribute)
+
+## Properties
+
+### <a id="properties-age"/>**Age**
+
+PDB age (revision counter).
+
+```csharp
+public uint Age { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-guidsig"/>**GuidSig**
+
+The GUID embedded in the PDB that uniquely identifies the symbol file.
+
+```csharp
+public Guid GuidSig { get; set; }
+```
+
+#### Property Value
+
+[Guid](https://learn.microsoft.com/dotnet/api/system.guid)<br>
+
+### <a id="properties-imagebase"/>**ImageBase**
+
+Base address of the image at the time the debug information was recorded.
+
+```csharp
+public ulong ImageBase { get; set; }
+```
+
+#### Property Value
+
+[UInt64](https://learn.microsoft.com/dotnet/api/system.uint64)<br>
+
+### <a id="properties-pdbfilename"/>**PdbFileName**
+
+Original file name of the PDB (may be a full path recorded at build time).
+
+```csharp
+public string PdbFileName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-processid"/>**ProcessId**
+
+Process ID of the process that logged the event.
+
+```csharp
+public uint ProcessId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-threadid"/>**ThreadId**
+
+Thread ID of the thread that logged the event.
+
+```csharp
+public uint ThreadId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-timestamp"/>**Timestamp**
+
+Raw event timestamp (100-nanosecond intervals since January 1, 1601).
+
+```csharp
+public long Timestamp { get; set; }
+```
+
+#### Property Value
+
+[Int64](https://learn.microsoft.com/dotnet/api/system.int64)<br>
+
+## Methods
+
+### <a id="methods-equals"/>**Equals(DbgIdRsdsEventInfo)**
+
+```csharp
+bool Equals(DbgIdRsdsEventInfo other)
+```
+
+#### Parameters
+
+`other` [DbgIdRsdsEventInfo](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+### <a id="methods-topdbmetadata"/>**ToPdbMetaData()**
+
+Projects this event into the [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md) structure used for symbol server lookups.
+
+```csharp
+PdbMetaData ToPdbMetaData()
+```
+
+#### Returns
+
+[PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md)
+
+#### Exceptions
+
+[ArgumentOutOfRangeException](https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception)<br>
+Thrown when [DbgIdRsdsEventInfo.Age](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md#age) exceeds [Int32.MaxValue](https://learn.microsoft.com/dotnet/api/system.int32.maxvalue) and cannot be safely narrowed.
+
+===== nefarius.utilities.etw.events.imageideventinfo.md =====
+# ImageIdEventInfo
+
+Namespace: Nefarius.Utilities.ETW.Events
+
+Strongly-typed representation of a `KernelTraceControl/ImageID` event (opcode 0,
+ provider `b3e675d7-2554-4f18-830b-2762732560de`).
+
+```csharp
+public record struct ImageIdEventInfo
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [ImageIdEventInfo](./nefarius.utilities.etw.events.imageideventinfo.md)<br>
+Attributes [IsReadOnlyAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.isreadonlyattribute)
+
+## Properties
+
+### <a id="properties-imagebase"/>**ImageBase**
+
+Base virtual address at which the image was loaded.
+
+```csharp
+public ulong ImageBase { get; set; }
+```
+
+#### Property Value
+
+[UInt64](https://learn.microsoft.com/dotnet/api/system.uint64)<br>
+
+### <a id="properties-imagesize"/>**ImageSize**
+
+Size of the image in bytes.
+
+```csharp
+public uint ImageSize { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-originalfilename"/>**OriginalFileName**
+
+Original file name of the image as recorded in the trace.
+
+```csharp
+public string OriginalFileName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-processid"/>**ProcessId**
+
+Process ID of the process that logged the event.
+
+```csharp
+public uint ProcessId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-threadid"/>**ThreadId**
+
+Thread ID of the thread that logged the event.
+
+```csharp
+public uint ThreadId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-timedatestamp"/>**TimeDateStamp**
+
+PE timestamp / date-stamp from the image header.
+
+```csharp
+public uint TimeDateStamp { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-timestamp"/>**Timestamp**
+
+Raw event timestamp (100-nanosecond intervals since January 1, 1601).
+
+```csharp
+public long Timestamp { get; set; }
+```
+
+#### Property Value
+
+[Int64](https://learn.microsoft.com/dotnet/api/system.int64)<br>
+
+## Methods
+
+### <a id="methods-equals"/>**Equals(ImageIdEventInfo)**
+
+```csharp
+bool Equals(ImageIdEventInfo other)
+```
+
+#### Parameters
+
+`other` [ImageIdEventInfo](./nefarius.utilities.etw.events.imageideventinfo.md)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+===== nefarius.utilities.etw.events.imageidfileversioneventinfo.md =====
+# ImageIdFileVersionEventInfo
+
+Namespace: Nefarius.Utilities.ETW.Events
+
+Strongly-typed representation of a `KernelTraceControl/ImageID/FileVersion` event (opcode 64,
+ provider `b3e675d7-2554-4f18-830b-2762732560de`).
+
+```csharp
+public record struct ImageIdFileVersionEventInfo
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [ImageIdFileVersionEventInfo](./nefarius.utilities.etw.events.imageidfileversioneventinfo.md)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute), [IsReadOnlyAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.isreadonlyattribute)
+
+## Properties
+
+### <a id="properties-binfileversion"/>**BinFileVersion**
+
+Binary (numeric) file version from the version resource.
+
+```csharp
+public string BinFileVersion { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-companyname"/>**CompanyName**
+
+Company name from the version resource.
+
+```csharp
+public string CompanyName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-filedescription"/>**FileDescription**
+
+Human-readable file description from the version resource.
+
+```csharp
+public string FileDescription { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-fileid"/>**FileId**
+
+File identifier.
+
+```csharp
+public string FileId { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-fileversion"/>**FileVersion**
+
+File version string from the version resource.
+
+```csharp
+public string FileVersion { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-imagesize"/>**ImageSize**
+
+Size of the image in bytes.
+
+```csharp
+public uint ImageSize { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-origfilename"/>**OrigFileName**
+
+Original file name of the image.
+
+```csharp
+public string OrigFileName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-processid"/>**ProcessId**
+
+Process ID of the process that logged the event.
+
+```csharp
+public uint ProcessId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-productname"/>**ProductName**
+
+Product name from the version resource.
+
+```csharp
+public string ProductName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-productversion"/>**ProductVersion**
+
+Product version string from the version resource.
+
+```csharp
+public string ProductVersion { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-programid"/>**ProgramId**
+
+Program identifier.
+
+```csharp
+public string ProgramId { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-threadid"/>**ThreadId**
+
+Thread ID of the thread that logged the event.
+
+```csharp
+public uint ThreadId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-timedatestamp"/>**TimeDateStamp**
+
+PE timestamp / date-stamp from the image header.
+
+```csharp
+public uint TimeDateStamp { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-timestamp"/>**Timestamp**
+
+Raw event timestamp (100-nanosecond intervals since January 1, 1601).
+
+```csharp
+public long Timestamp { get; set; }
+```
+
+#### Property Value
+
+[Int64](https://learn.microsoft.com/dotnet/api/system.int64)<br>
+
+### <a id="properties-verlanguage"/>**VerLanguage**
+
+Language identifier of the version resource.
+
+```csharp
+public string VerLanguage { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+## Methods
+
+### <a id="methods-equals"/>**Equals(ImageIdFileVersionEventInfo)**
+
+```csharp
+bool Equals(ImageIdFileVersionEventInfo other)
+```
+
+#### Parameters
+
+`other` [ImageIdFileVersionEventInfo](./nefarius.utilities.etw.events.imageidfileversioneventinfo.md)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+===== nefarius.utilities.etw.events.kerneldbgidrsdseventinfo.md =====
+# KernelDbgIdRsdsEventInfo
+
+Namespace: Nefarius.Utilities.ETW.Events
+
+Strongly-typed representation of a `MSNT_SystemTrace/EventTrace/DbgIdRSDS` event emitted by the
+ legacy kernel Event Trace provider (EventTraceGuid).
+
+```csharp
+public record struct KernelDbgIdRsdsEventInfo
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [KernelDbgIdRsdsEventInfo](./nefarius.utilities.etw.events.kerneldbgidrsdseventinfo.md)<br>
+Attributes [IsReadOnlyAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.isreadonlyattribute)
+
+**Remarks:**
+
+The layout of this event is: `Guid` (16 bytes) + `Age` (uint32) + null-terminated ANSI PDB name.
+ This is distinct from the [DbgIdRsdsEventInfo](./nefarius.utilities.etw.events.dbgidrsdseventinfo.md) emitted by the
+ `KernelTraceControl/ImageID` provider, which prepends `ImageBase` and `ProcessId`.
+
+## Properties
+
+### <a id="properties-age"/>**Age**
+
+PDB age (revision counter).
+
+```csharp
+public uint Age { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-guid"/>**Guid**
+
+The GUID embedded in the PDB that uniquely identifies the symbol file.
+
+```csharp
+public Guid Guid { get; set; }
+```
+
+#### Property Value
+
+[Guid](https://learn.microsoft.com/dotnet/api/system.guid)<br>
+
+### <a id="properties-pdbname"/>**PdbName**
+
+Original file name of the PDB (may be a full path recorded at build time).
+
+```csharp
+public string PdbName { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-processid"/>**ProcessId**
+
+Process ID of the process that logged the event.
+
+```csharp
+public uint ProcessId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-threadid"/>**ThreadId**
+
+Thread ID of the thread that logged the event.
+
+```csharp
+public uint ThreadId { get; set; }
+```
+
+#### Property Value
+
+[UInt32](https://learn.microsoft.com/dotnet/api/system.uint32)<br>
+
+### <a id="properties-timestamp"/>**Timestamp**
+
+Raw event timestamp (100-nanosecond intervals since January 1, 1601).
+
+```csharp
+public long Timestamp { get; set; }
+```
+
+#### Property Value
+
+[Int64](https://learn.microsoft.com/dotnet/api/system.int64)<br>
+
+## Methods
+
+### <a id="methods-equals"/>**Equals(KernelDbgIdRsdsEventInfo)**
+
+```csharp
+bool Equals(KernelDbgIdRsdsEventInfo other)
+```
+
+#### Parameters
+
+`other` [KernelDbgIdRsdsEventInfo](./nefarius.utilities.etw.events.kerneldbgidrsdseventinfo.md)<br>
+
+#### Returns
+
+[Boolean](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+### <a id="methods-topdbmetadata"/>**ToPdbMetaData()**
+
+Projects this event into the [PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md) structure used for symbol server lookups.
+
+```csharp
+PdbMetaData ToPdbMetaData()
+```
+
+#### Returns
+
+[PdbMetaData](./nefarius.utilities.etw.deserializer.wpp.pdbmetadata.md)
+
+#### Exceptions
+
+[ArgumentOutOfRangeException](https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception)<br>
+Thrown when [KernelDbgIdRsdsEventInfo.Age](./nefarius.utilities.etw.events.kerneldbgidrsdseventinfo.md#age) exceeds [Int32.MaxValue](https://learn.microsoft.com/dotnet/api/system.int32.maxvalue) and cannot be safely narrowed.
+
+===== nefarius.utilities.etw.exceptions.etwenabletraceexception.md =====
+# EtwEnableTraceException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+Thrown when `EnableTraceEx2` fails to enable or disable a provider on a realtime ETW session.
+
+```csharp
+public sealed class EtwEnableTraceException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [EtwEnableTraceException](./nefarius.utilities.etw.exceptions.etwenabletraceexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.exceptions.etwopentraceexception.md =====
+# EtwOpenTraceException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+```csharp
+public sealed class EtwOpenTraceException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [EtwOpenTraceException](./nefarius.utilities.etw.exceptions.etwopentraceexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.exceptions.etwstarttraceexception.md =====
+# EtwStartTraceException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+Thrown when `StartTraceW` fails to create a realtime ETW session.
+
+```csharp
+public sealed class EtwStartTraceException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [EtwStartTraceException](./nefarius.utilities.etw.exceptions.etwstarttraceexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)<br>
+Attributes [NullableContextAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullablecontextattribute), [NullableAttribute](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.nullableattribute)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.exceptions.tdhgeteventinformationexception.md =====
+# TdhGetEventInformationException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+```csharp
+public sealed class TdhGetEventInformationException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [TdhGetEventInformationException](./nefarius.utilities.etw.exceptions.tdhgeteventinformationexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.exceptions.tdhgetpropertyexception.md =====
+# TdhGetPropertyException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+```csharp
+public sealed class TdhGetPropertyException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [TdhGetPropertyException](./nefarius.utilities.etw.exceptions.tdhgetpropertyexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.exceptions.tdhgetpropertysizeexception.md =====
+# TdhGetPropertySizeException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+```csharp
+public sealed class TdhGetPropertySizeException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [TdhGetPropertySizeException](./nefarius.utilities.etw.exceptions.tdhgetpropertysizeexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.exceptions.tdhgetwpppropertyexception.md =====
+# TdhGetWppPropertyException
+
+Namespace: Nefarius.Utilities.ETW.Exceptions
+
+```csharp
+public sealed class TdhGetWppPropertyException : System.ComponentModel.Win32Exception, System.Runtime.Serialization.ISerializable
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [Exception](https://learn.microsoft.com/dotnet/api/system.exception) → [SystemException](https://learn.microsoft.com/dotnet/api/system.systemexception) → [ExternalException](https://learn.microsoft.com/dotnet/api/system.runtime.interopservices.externalexception) → [Win32Exception](https://learn.microsoft.com/dotnet/api/system.componentmodel.win32exception) → [TdhGetWppPropertyException](./nefarius.utilities.etw.exceptions.tdhgetwpppropertyexception.md)<br>
+Implements [ISerializable](https://learn.microsoft.com/dotnet/api/system.runtime.serialization.iserializable)
+
+## Properties
+
+### <a id="properties-data"/>**Data**
+
+```csharp
+public IDictionary Data { get; }
+```
+
+#### Property Value
+
+[IDictionary](https://learn.microsoft.com/dotnet/api/system.collections.idictionary)<br>
+
+### <a id="properties-errorcode"/>**ErrorCode**
+
+```csharp
+public int ErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-helplink"/>**HelpLink**
+
+```csharp
+public string HelpLink { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-hresult"/>**HResult**
+
+```csharp
+public int HResult { get; set; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-innerexception"/>**InnerException**
+
+```csharp
+public Exception InnerException { get; }
+```
+
+#### Property Value
+
+[Exception](https://learn.microsoft.com/dotnet/api/system.exception)<br>
+
+### <a id="properties-message"/>**Message**
+
+```csharp
+public string Message { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-nativeerrorcode"/>**NativeErrorCode**
+
+```csharp
+public int NativeErrorCode { get; }
+```
+
+#### Property Value
+
+[Int32](https://learn.microsoft.com/dotnet/api/system.int32)<br>
+
+### <a id="properties-source"/>**Source**
+
+```csharp
+public string Source { get; set; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-stacktrace"/>**StackTrace**
+
+```csharp
+public string StackTrace { get; }
+```
+
+#### Property Value
+
+[String](https://learn.microsoft.com/dotnet/api/system.string)<br>
+
+### <a id="properties-targetsite"/>**TargetSite**
+
+```csharp
+public MethodBase TargetSite { get; }
+```
+
+#### Property Value
+
+[MethodBase](https://learn.microsoft.com/dotnet/api/system.reflection.methodbase)<br>
+
+===== nefarius.utilities.etw.traceeventlevel.md =====
+# TraceEventLevel
+
+Namespace: Nefarius.Utilities.ETW
+
+Specifies the verbosity level of events delivered from a provider to a realtime ETW session.
+ Values match the `TRACE_LEVEL_*` constants defined in `evntprov.h`.
+
+```csharp
+public enum TraceEventLevel
+```
+
+Inheritance [Object](https://learn.microsoft.com/dotnet/api/system.object) → [ValueType](https://learn.microsoft.com/dotnet/api/system.valuetype) → [Enum](https://learn.microsoft.com/dotnet/api/system.enum) → [TraceEventLevel](./nefarius.utilities.etw.traceeventlevel.md)<br>
+Implements [IComparable](https://learn.microsoft.com/dotnet/api/system.icomparable), [ISpanFormattable](https://learn.microsoft.com/dotnet/api/system.ispanformattable), [IFormattable](https://learn.microsoft.com/dotnet/api/system.iformattable), [IConvertible](https://learn.microsoft.com/dotnet/api/system.iconvertible)
+
+## Fields
+
+| Name | Value | Description |
+| --- | --: | --- |
+| None | 0 | No tracing. The provider is effectively disabled. |
+| Critical | 1 | Abnormal exit or termination events. |
+| Error | 2 | Severe errors that need logging. |
+| Warning | 3 | Warnings such as resource allocation failures. |
+| Information | 4 | Non-error informational events, such as entry and exit points. |
+| Verbose | 5 | Detailed trace events from intermediate processing steps. |
+

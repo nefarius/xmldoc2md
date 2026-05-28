@@ -264,9 +264,8 @@ internal partial class TypeDocumentation
     {
         return element.Name.ToString() switch
         {
-            "see" => this.GetLinkFromReference(element.Attribute("cref")?.Value ?? element.Attribute("href")?.Value,
-                element.Value),
-            "seealso" => this.GetLinkFromReference(element.Attribute("cref")?.Value, element.Value),
+            "see" => this.RenderSeeElement(element),
+            "seealso" => this.RenderSeeAlsoElement(element),
             "c" => new MarkdownInlineCode(element.Value),
             "br" => new MarkdownText($"<br>{element.Value ?? string.Empty}"),
             "para" => this.XNodesToMarkdownParagraph(element.Nodes()),
@@ -274,8 +273,65 @@ internal partial class TypeDocumentation
             "code" => new MarkdownCode("csharp", FormatCodeElementValue(element.Value)),
             "list" => this.XElementToMarkdownList(element),
             "paramref" => new MarkdownInlineCode(element.Attribute("name")?.Value),
+            "typeparamref" => new MarkdownInlineCode(element.Attribute("name")?.Value),
             _ => new MarkdownText(element.Value)
         };
+    }
+
+    /// <summary>
+    /// Renders a <c>&lt;see .../&gt;</c> element, handling <c>cref</c>, <c>href</c>, and
+    /// <c>langword</c> attributes in priority order.
+    /// </summary>
+    private MarkdownInlineElement RenderSeeElement(XElement element)
+    {
+        string cref = element.Attribute("cref")?.Value;
+        if (cref != null)
+        {
+            return this.GetLinkFromReference(cref, !string.IsNullOrEmpty(element.Value) ? element.Value : null);
+        }
+
+        string href = element.Attribute("href")?.Value;
+        if (href != null)
+        {
+            string text = !string.IsNullOrEmpty(element.Value) ? element.Value : href;
+            return new MarkdownLink(text, href);
+        }
+
+        string langword = element.Attribute("langword")?.Value;
+        if (langword != null)
+        {
+            return new MarkdownInlineCode(langword);
+        }
+
+        return new MarkdownText(element.Value ?? string.Empty);
+    }
+
+    /// <summary>
+    /// Renders a <c>&lt;seealso .../&gt;</c> element, handling <c>cref</c>, <c>href</c>, and
+    /// <c>langword</c> attributes.
+    /// </summary>
+    private MarkdownInlineElement RenderSeeAlsoElement(XElement element)
+    {
+        string cref = element.Attribute("cref")?.Value;
+        if (cref != null)
+        {
+            return this.GetLinkFromReference(cref, !string.IsNullOrEmpty(element.Value) ? element.Value : null);
+        }
+
+        string href = element.Attribute("href")?.Value;
+        if (href != null)
+        {
+            string text = !string.IsNullOrEmpty(element.Value) ? element.Value : href;
+            return new MarkdownLink(text, href);
+        }
+
+        string langword = element.Attribute("langword")?.Value;
+        if (langword != null)
+        {
+            return new MarkdownInlineCode(langword);
+        }
+
+        return new MarkdownText(element.Value ?? string.Empty);
     }
 
     private static string FormatCodeElementValue(string code)
