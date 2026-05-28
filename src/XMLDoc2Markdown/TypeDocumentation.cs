@@ -43,7 +43,10 @@ internal partial class TypeDocumentation
 
         this._document.AppendHeader(this._type.GetDisplayName().FormatChevrons(), 1);
 
-        this._document.AppendParagraph($"Namespace: {this._type.Namespace}");
+        if (this._type.Namespace != null)
+        {
+            this._document.AppendParagraph($"Namespace: {this._type.Namespace}");
+        }
 
         XElement typeDocElement = this._documentation.GetMember(this._type);
 
@@ -56,7 +59,7 @@ internal partial class TypeDocumentation
         this.WriteMemberInfoSummary(typeDocElement);
         this.WriteMemberInfoSignature(this._type);
         this.WriteTypeParameters(this._type, typeDocElement);
-        this.WriteInheritanceAndImplements();
+        this.WriteInheritanceAndImplementsAndAttributes();
         this.WriteMemberInfoRemarks(typeDocElement);
 
         if (this._type.IsEnum)
@@ -117,7 +120,7 @@ internal partial class TypeDocumentation
         }
     }
 
-    private void WriteInheritanceAndImplements()
+    private void WriteInheritanceAndImplementsAndAttributes()
     {
         List<string> lines = new();
 
@@ -141,6 +144,17 @@ internal partial class TypeDocumentation
                     noExtension: this._options.GitHubPages || this._options.GitlabWiki,
                     noPrefix: this._options.GitlabWiki));
             lines.Add($"Implements {string.Join(", ", implements)}");
+        }
+
+        IEnumerable<Attribute> attributes = this._type.GetCustomAttributes();
+        if (attributes.Any())
+        {
+            IEnumerable<MarkdownInlineElement> links = attributes
+                .Select(a => a.GetType().GetDocsLink(
+                    this._assembly,
+                    noExtension: this._options.GitHubPages || this._options.GitlabWiki,
+                    noPrefix: this._options.GitlabWiki));
+            lines.Add($"Attributes {string.Join(", ", links)}");
         }
 
         if (lines.Any())

@@ -172,7 +172,7 @@ internal class Program
             IEnumerable<IGrouping<string, Type>> typesByNamespace = types.GroupBy(type => type.Namespace).OrderBy(g => g.Key);
             foreach (IGrouping<string, Type> namespaceTypes in typesByNamespace)
             {
-                indexPage.AppendHeader($"Namespace {namespaceTypes.Key}", 2);
+                indexPage.AppendHeader($"Namespace {namespaceTypes.Key ?? "No namespace"}", 2);
 
                 foreach (Type type in namespaceTypes.OrderBy(x => x.Name))
                 {
