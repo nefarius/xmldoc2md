@@ -76,6 +76,73 @@ internal static class TypeExtensions
         return t.Name;
     }
 
+    /// <summary>
+    /// Returns <c>true</c> when <paramref name="type"/> is a C# record class or record struct.
+    /// Record classes are identified by the compiler-generated <c>&lt;Clone&gt;$</c> method.
+    /// Record structs are identified by the compiler-generated
+    /// <c>PrintMembers(System.Text.StringBuilder)</c> method on a value type.
+    /// </summary>
+    internal static bool IsRecord(this Type type)
+    {
+        if (type == null)
+        {
+            return false;
+        }
+
+        const BindingFlags all = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+
+        // Record classes have a compiler-generated <Clone>$ method
+        if (type.IsClass)
+        {
+            return type.GetMethod("<Clone>$", all) != null;
+        }
+
+        // Record structs have a compiler-generated PrintMembers(System.Text.StringBuilder) method
+        if (type.IsValueType && !type.IsEnum)
+        {
+            return type.GetMethod(
+                "PrintMembers",
+                all,
+                null,
+                [typeof(System.Text.StringBuilder)],
+                null) != null;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Returns a "clean" fully-qualified type name that never contains assembly-qualified generic arguments.
+    /// For example <c>System.IEquatable`1[[MyNS.Foo, ...]]</c> becomes <c>System.IEquatable&lt;Foo&gt;</c>.
+    /// </summary>
+    internal static string GetCleanFullName(this Type type)
+    {
+        if (type == null)
+        {
+            return string.Empty;
+        }
+
+        if (!type.IsGenericType)
+        {
+            return type.FullName ?? type.Name;
+        }
+
+        string baseName = type.GetGenericTypeDefinition().FullName;
+        if (baseName == null)
+        {
+            return PrettyTypeName(type);
+        }
+
+        int backtick = baseName.IndexOf('`');
+        if (backtick > 0)
+        {
+            baseName = baseName[..backtick];
+        }
+
+        string args = string.Join(", ", type.GetGenericArguments().Select(GetCleanFullName));
+        return $"{baseName}<{args}>";
+    }
+
     internal static string GetSignature(this Type type, bool full = false)
     {
         List<string> signature = new();
@@ -84,7 +151,24 @@ internal static class TypeExtensions
         {
             signature.Add(type.GetVisibility().Print());
 
-            if (type.IsClass)
+            bool isRecord = type.IsRecord();
+
+            if (isRecord && type.IsValueType)
+            {
+                signature.Add("record");
+                signature.Add("struct");
+            }
+            else if (isRecord)
+            {
+                // sealed is implicit for records unless explicitly inherited; omit "sealed"
+                if (type.IsAbstract)
+                {
+                    signature.Add("abstract");
+                }
+
+                signature.Add("record");
+            }
+            else if (type.IsClass)
             {
                 if (type.IsAbstract && type.IsSealed)
                 {
@@ -119,18 +203,41 @@ internal static class TypeExtensions
 
         if (type.IsClass || type.IsInterface)
         {
+            bool isRecord = type.IsRecord();
             List<Type> baseTypeAndInterfaces = new();
 
             if (type.IsClass && type.BaseType != null && type.BaseType != typeof(object))
             {
-                baseTypeAndInterfaces.Add(type.BaseType);
+                // For records, the compiler-generated base (e.g. System.Object already excluded) is
+                // still emitted if it's not the special record base type.
+                Type baseType = type.BaseType;
+                bool isRecordBase = isRecord &&
+                                    (baseType.FullName == "System.Object" ||
+                                     (baseType.IsRecord() && baseType == type.BaseType));
+                if (!isRecordBase)
+                {
+                    baseTypeAndInterfaces.Add(baseType);
+                }
             }
 
-            baseTypeAndInterfaces.AddRange(type.GetInterfaces());
+            IEnumerable<Type> interfaces = type.GetInterfaces();
+            if (isRecord)
+            {
+                // Strip IEquatable<Self> and IComparable<Self> that records add automatically
+                interfaces = interfaces.Where(i =>
+                    !(i.IsGenericType &&
+                      (i.GetGenericTypeDefinition() == typeof(IEquatable<>) ||
+                       i.GetGenericTypeDefinition() == typeof(IComparable<>)) &&
+                      i.GetGenericArguments().Length == 1 &&
+                      i.GetGenericArguments()[0] == type));
+            }
+
+            baseTypeAndInterfaces.AddRange(interfaces);
 
             if (baseTypeAndInterfaces.Count > 0)
             {
-                signature.Add($": {string.Join(", ", baseTypeAndInterfaces.Select(t => t.Namespace != type.Namespace ? t.FullName : PrettyTypeName(t)))}");
+                // Use clean rendering: never emit assembly-qualified FullName for generic args
+                signature.Add($": {string.Join(", ", baseTypeAndInterfaces.Select(t => t.Namespace != type.Namespace ? t.GetCleanFullName() : PrettyTypeName(t)))}");
             }
         }
 
@@ -161,7 +268,7 @@ internal static class TypeExtensions
         }
     }
 
-    internal static string GetMSDocsUrl(this Type type, string msdocsBaseUrl = "https://docs.microsoft.com/en-us/dotnet/api")
+    internal static string GetMSDocsUrl(this Type type, string msdocsBaseUrl = "https://learn.microsoft.com/dotnet/api")
     {
         if (type == null)
         {
@@ -208,8 +315,17 @@ internal static class TypeExtensions
         Assembly assembly,
         string text = null,
         bool noExtension = false,
-        bool noPrefix = false)
+        bool noPrefix = false,
+        bool linkGenericArguments = false,
+        ExternalDocsResolver externalDocsResolver = null)
     {
+        // When rendering generic types with linked arguments, produce a composite element:
+        // "List<[MyType](./mytype.md)>" instead of a single link to List`1.
+        if (linkGenericArguments && type.IsGenericType && string.IsNullOrEmpty(text))
+        {
+            return BuildGenericLink(type, assembly, noExtension, noPrefix, externalDocsResolver);
+        }
+
         if (string.IsNullOrEmpty(text))
         {
             text = type.GetDisplayName().FormatChevrons();
@@ -225,9 +341,75 @@ internal static class TypeExtensions
             {
                 return new MarkdownLink(text, type.GetInternalDocsUrl(noExtension, noPrefix));
             }
+
+            // External type — try external docs map
+            if (externalDocsResolver != null)
+            {
+                string externalUrl = externalDocsResolver.TryGetUrl(type);
+                if (externalUrl != null)
+                {
+                    return new MarkdownLink(text, externalUrl);
+                }
+            }
         }
 
         return new MarkdownText(text);
+    }
+
+    /// <summary>
+    /// Builds a composite Markdown inline element for a generic type where each type argument
+    /// is also rendered as a link when possible.
+    /// Example: <c>Wrapper&lt;[MyType](./mytype.md)&gt;</c>
+    /// </summary>
+    private static MarkdownInlineElement BuildGenericLink(
+        Type type,
+        Assembly assembly,
+        bool noExtension,
+        bool noPrefix,
+        ExternalDocsResolver externalDocsResolver)
+    {
+        Type openGeneric = type.GetGenericTypeDefinition();
+        string baseName = openGeneric.Name;
+        int backtick = baseName.IndexOf('`');
+        if (backtick > 0)
+        {
+            baseName = baseName[..backtick];
+        }
+
+        // Link the open generic itself
+        MarkdownInlineElement outerLink;
+        if (!string.IsNullOrEmpty(openGeneric.FullName))
+        {
+            if (openGeneric.Assembly == typeof(string).Assembly)
+            {
+                outerLink = new MarkdownLink(baseName, openGeneric.GetMSDocsUrl());
+            }
+            else if (openGeneric.Assembly == assembly)
+            {
+                outerLink = new MarkdownLink(baseName, openGeneric.GetInternalDocsUrl(noExtension, noPrefix));
+            }
+            else if (externalDocsResolver != null)
+            {
+                string url = externalDocsResolver.TryGetUrl(openGeneric);
+                outerLink = url != null ? new MarkdownLink(baseName, url) : (MarkdownInlineElement)new MarkdownText(baseName);
+            }
+            else
+            {
+                outerLink = new MarkdownText(baseName);
+            }
+        }
+        else
+        {
+            outerLink = new MarkdownText(baseName);
+        }
+
+        // Recursively render each generic argument
+        Type[] args = type.GetGenericArguments();
+        string argText = string.Join(", ", args.Select(a =>
+            a.GetDocsLink(assembly, null, noExtension, noPrefix, linkGenericArguments: true, externalDocsResolver)
+             .ToString()));
+
+        return new MarkdownText($"{outerLink}<{argText}>");
     }
 }
 

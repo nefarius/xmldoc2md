@@ -88,6 +88,38 @@ internal class Program
             "Set link for back button in index page, (default:  \"./\").",
             CommandOptionType.SingleValue);
 
+        CommandOption externalDocsOption = app.Option(
+            "--external-docs",
+            "Add an external documentation mapping in the format <namespace>=<url-base> (repeatable).",
+            CommandOptionType.MultipleValue);
+
+        CommandOption externalDocsFileOption = app.Option(
+            "--external-docs-file",
+            "Path to a JSON file with namespace → URL-base mappings for external documentation.",
+            CommandOptionType.SingleValue);
+
+        CommandOption noLinkGenericArgsOption = app.Option(
+            "--no-link-generic-arguments",
+            "Disable individual links for each generic type argument (legacy rendering).",
+            CommandOptionType.NoValue);
+
+        CommandOption frontMatterOption = app.Option(
+            "--front-matter",
+            "YAML front matter (or @filepath) prepended to every generated type page. " +
+            "Supports placeholders: {TypeName}, {Namespace}, {AssemblyName}, {Date}.",
+            CommandOptionType.SingleValue);
+
+        CommandOption indexFrontMatterOption = app.Option(
+            "--index-front-matter",
+            "YAML front matter (or @filepath) prepended to the generated index page. " +
+            "Supports placeholders: {AssemblyName}, {Date}.",
+            CommandOptionType.SingleValue);
+
+        CommandOption failOnUnresolvedOption = app.Option(
+            "--fail-on-unresolved",
+            "Exit with a non-zero code if any type reference could not be resolved.",
+            CommandOptionType.NoValue);
+
         app.OnExecute(() =>
         {
             string src = srcArg.Value;
@@ -126,6 +158,29 @@ internal class Program
                 }
             }
 
+            // Build external docs resolver
+            XMLDoc2Markdown.Utils.ExternalDocsResolver externalDocsResolver = new();
+            foreach (string mapping in externalDocsOption.Values)
+            {
+                int eq = mapping.IndexOf('=');
+                if (eq > 0)
+                {
+                    externalDocsResolver.AddMapping(mapping[..eq], mapping[(eq + 1)..]);
+                }
+                else
+                {
+                    Logger.Warning($"Ignoring malformed --external-docs entry (expected namespace=url): {mapping}");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(externalDocsFileOption.Value()))
+            {
+                externalDocsResolver.LoadFromFile(externalDocsFileOption.Value());
+            }
+
+            string frontMatterTemplate = ResolveFrontMatterArg(frontMatterOption.Value());
+            string indexFrontMatterTemplate = ResolveFrontMatterArg(indexFrontMatterOption.Value());
+
             TypeDocumentationOptions options = new()
             {
                 ExamplesDirectory = examplesPathOption.Value(),
@@ -137,7 +192,12 @@ internal class Program
                 IncludePrivateMembers = IncludePrivateMethodOption.HasValue(),
                 ExcludeInternals = ExcludeINternalsOption.HasValue(),
                 OnlyInternalMembers = OnlyInternalMethodOption.HasValue(),
-                FoundBackButtonTemplate = false
+                FoundBackButtonTemplate = false,
+                LinkGenericArguments = !noLinkGenericArgsOption.HasValue(),
+                FrontMatter = frontMatterTemplate,
+                IndexFrontMatter = indexFrontMatterTemplate,
+                FailOnUnresolved = failOnUnresolvedOption.HasValue(),
+                ExternalDocsResolver = externalDocsResolver
             };
             int succeeded = 0;
             int failed = 0;
@@ -148,13 +208,16 @@ internal class Program
             }
             
             AssemblyResolver resolver = new();
-            resolver.AddSearchDirectory(Path.GetDirectoryName(src));
+            string srcDir = Path.GetDirectoryName(src);
+            resolver.AddSearchDirectory(srcDir);
 
             Assembly assembly = new AssemblyLoadContext(src)
                 .LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(src)));
 
             string assemblyName = assembly.GetName().Name;
             XmlDocumentation documentation = new(src);
+            XmlDocumentationContext docContext = new(documentation);
+            docContext.AddSearchDirectory(srcDir);
             Logger.Info($"Generation started: Assembly: {assemblyName}");
 
             IMarkdownDocument indexPage = new MarkdownDocument();
@@ -214,12 +277,19 @@ internal class Program
                             }
 
                             resultdoc = resultdoc.Replace("{xmldoc2md-Body()}",
-                                    new TypeDocumentation(assembly, type, documentation, options).ToString(),
+                                    new TypeDocumentation(assembly, type, docContext, options).ToString(),
                                     StringComparison.InvariantCultureIgnoreCase);
                         }
                         else
                         {
-                            resultdoc = new TypeDocumentation(assembly, type, documentation, options).ToString();
+                            resultdoc = new TypeDocumentation(assembly, type, docContext, options).ToString();
+                        }
+
+                        // Prepend per-type front matter
+                        if (!string.IsNullOrEmpty(options.FrontMatter))
+                        {
+                            string fm = ApplyFrontMatterPlaceholders(options.FrontMatter, typename, type.Namespace, assemblyName);
+                            resultdoc = fm + resultdoc;
                         }
 
                         File.WriteAllText(
@@ -251,9 +321,22 @@ internal class Program
                 resultindexdoc = indexPage.ToString();
             }
 
+            // Prepend index front matter
+            if (!string.IsNullOrEmpty(options.IndexFrontMatter))
+            {
+                string fm = ApplyFrontMatterPlaceholders(options.IndexFrontMatter, null, null, assemblyName);
+                resultindexdoc = fm + resultindexdoc;
+            }
+
             File.WriteAllText(Path.Combine(@out, $"{indexPageName}.md"), resultindexdoc);
 
             Logger.Info($"Generation: {succeeded} succeeded, {failed} failed");
+
+            if (options.FailOnUnresolved && (failed > 0 || options.UnresolvedCount > 0))
+            {
+                Logger.Error($"Exiting with error: {failed} generation failure(s), {options.UnresolvedCount} unresolved type reference(s).");
+                return 1;
+            }
 
             return 0;
         });
@@ -273,5 +356,40 @@ internal class Program
         }
 
         return 1;
+    }
+
+    /// <summary>
+    /// Reads front matter value from the CLI argument: if it starts with <c>@</c> treats the
+    /// remainder as a file path and reads the file; otherwise returns the string as-is.
+    /// </summary>
+    private static string ResolveFrontMatterArg(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return null;
+        }
+
+        if (value.StartsWith('@'))
+        {
+            string path = value[1..];
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException($"Front matter file not found: {path}", path);
+            }
+
+            return File.ReadAllText(path);
+        }
+
+        return value;
+    }
+
+    /// <summary>Replaces well-known placeholders in a front matter template string.</summary>
+    private static string ApplyFrontMatterPlaceholders(string template, string typeName, string namespaceName, string assemblyName)
+    {
+        return template
+            .Replace("{TypeName}", typeName ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("{Namespace}", namespaceName ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("{AssemblyName}", assemblyName ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("{Date}", DateTime.UtcNow.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase);
     }
 }

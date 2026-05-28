@@ -93,7 +93,7 @@ internal static class MemberInfoExtensions
         }
     }
 
-    internal static string GetMSDocsUrl(this MemberInfo memberInfo, string msdocsBaseUrl = "https://docs.microsoft.com/en-us/dotnet/api")
+    internal static string GetMSDocsUrl(this MemberInfo memberInfo, string msdocsBaseUrl = "https://learn.microsoft.com/dotnet/api")
     {
         RequiredArgument.NotNull(memberInfo, nameof(memberInfo));
 
@@ -130,19 +130,32 @@ internal static class MemberInfoExtensions
         return $"{url}#{anchor}";
     }
 
-    internal static MarkdownInlineElement GetDocsLink(this MemberInfo memberInfo, Assembly assembly, string text = null, bool noExtension = false, bool noPrefix = false)
+    internal static MarkdownInlineElement GetDocsLink(
+        this MemberInfo memberInfo,
+        Assembly assembly,
+        string text = null,
+        bool noExtension = false,
+        bool noPrefix = false,
+        bool linkGenericArguments = false,
+        ExternalDocsResolver externalDocsResolver = null)
     {
         RequiredArgument.NotNull(memberInfo, nameof(memberInfo));
         RequiredArgument.NotNull(assembly, nameof(assembly));
 
         return memberInfo switch
         {
-            Type type => type.GetDocsLink(assembly, text, noExtension, noPrefix),
+            Type type => type.GetDocsLink(assembly, text, noExtension, noPrefix, linkGenericArguments, externalDocsResolver),
             MethodBase method => method.GetDocsLink(assembly, text, noExtension, noPrefix),
-            _ => getDocsLinkBase(memberInfo, assembly, text, noExtension, noPrefix),
+            _ => getDocsLinkBase(memberInfo, assembly, text, noExtension, noPrefix, externalDocsResolver),
         };
 
-        static MarkdownInlineElement getDocsLinkBase(MemberInfo memberInfo, Assembly assembly, string text = null, bool noExtension = false, bool noPrefix = false)
+        static MarkdownInlineElement getDocsLinkBase(
+            MemberInfo memberInfo,
+            Assembly assembly,
+            string text = null,
+            bool noExtension = false,
+            bool noPrefix = false,
+            ExternalDocsResolver externalDocsResolver = null)
         {
             Type declaringType = memberInfo.DeclaringType;
 
@@ -160,6 +173,15 @@ internal static class MemberInfoExtensions
                 else if (declaringType.Assembly == assembly)
                 {
                     return new MarkdownLink(text, memberInfo.GetInternalDocsUrl(noExtension, noPrefix));
+                }
+
+                if (externalDocsResolver != null)
+                {
+                    string url = externalDocsResolver.TryGetUrl(declaringType);
+                    if (url != null)
+                    {
+                        return new MarkdownLink(text, url);
+                    }
                 }
 
                 return new MarkdownText(text);
