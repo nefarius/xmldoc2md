@@ -21,3 +21,13 @@ jobs:
 
       - name: Build
         run: dotnet build -c Release
+
+      - name: Test
+        run: dotnet test -c Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-results
+          path: coverage/

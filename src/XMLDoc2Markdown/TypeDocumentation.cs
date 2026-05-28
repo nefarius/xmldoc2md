@@ -17,21 +17,53 @@ internal partial class TypeDocumentation
 
     private readonly Assembly _assembly;
     private readonly IMarkdownDocument _document = new MarkdownDocument();
-    private readonly XmlDocumentation _documentation;
+    private readonly XmlDocumentationContext _context;
     private readonly TypeDocumentationOptions _options;
     private readonly Type _type;
 
     public TypeDocumentation(Assembly assembly, Type type, XmlDocumentation documentation,
         TypeDocumentationOptions options)
+        : this(assembly, type, new XmlDocumentationContext(documentation), options) { }
+
+    public TypeDocumentation(Assembly assembly, Type type, XmlDocumentationContext context,
+        TypeDocumentationOptions options)
     {
         RequiredArgument.NotNull(assembly, nameof(assembly));
         RequiredArgument.NotNull(type, nameof(type));
-        RequiredArgument.NotNull(documentation, nameof(documentation));
+        RequiredArgument.NotNull(context, nameof(context));
 
         this._assembly = assembly;
         this._type = type;
-        this._documentation = documentation;
+        this._context = context;
         this._options = options ?? new TypeDocumentationOptions();
+    }
+
+    // Keep backward-compat property for legacy callers
+    private XmlDocumentation Documentation => this._context.Primary;
+
+    /// <summary>Shorthand to call <see cref="TypeExtensions.GetDocsLink"/> with the current options.</summary>
+    private MarkdownInlineElement DocsLink(Type type, string text = null) =>
+        type.GetDocsLink(
+            this._assembly,
+            text,
+            noExtension: this._options.GitHubPages || this._options.GitlabWiki,
+            noPrefix: this._options.GitlabWiki,
+            linkGenericArguments: this._options.LinkGenericArguments,
+            externalDocsResolver: this._options.ExternalDocsResolver);
+
+    /// <summary>
+    /// Gets documentation for <paramref name="memberInfo"/>, resolving
+    /// <c>&lt;inheritdoc/&gt;</c> when present.
+    /// </summary>
+    private XElement GetEffectiveMemberDoc(MemberInfo memberInfo)
+    {
+        XElement raw = this._context.GetMember(memberInfo);
+        if (raw == null || raw.Element("inheritdoc") != null)
+        {
+            return InheritDocResolver.Resolve(memberInfo, this._context) ?? raw;
+        }
+
+        return raw;
     }
 
     public override string ToString()
@@ -48,7 +80,7 @@ internal partial class TypeDocumentation
             this._document.AppendParagraph($"Namespace: {this._type.Namespace}");
         }
 
-        XElement typeDocElement = this._documentation.GetMember(this._type);
+        XElement typeDocElement = this.GetEffectiveMemberDoc(this._type);
 
         if (typeDocElement != null)
         {
@@ -72,13 +104,23 @@ internal partial class TypeDocumentation
             this.WriteMembersDocumentation(this.GetFields().OrderBy(x => x.Name));
         }
 
-        this.WriteMembersDocumentation(this.GetProperties().OrderBy(x => x.Name));
+        bool isRecord = this._type.IsRecord();
+
+        IEnumerable<PropertyInfo> properties = this.GetProperties();
+        if (isRecord)
+        {
+            // EqualityContract is a compiler-generated property on record types
+            properties = properties.Where(p => p.Name != "EqualityContract");
+        }
+
+        this.WriteMembersDocumentation(properties.OrderBy(x => x.Name));
         this.WriteMembersDocumentation(this.GetConstructors().OrderBy(x => x.Name));
         this.WriteMembersDocumentation(
             this._type
                 .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static |
                             BindingFlags.DeclaredOnly)
                 .Where(m => !m.IsSpecialName)
+                .Where(m => !isRecord || !IsRecordCompilerGeneratedMethod(m))
                 .Where(m => !m.IsPrivate || this._options.IncludePrivateMembers)
                 .Where(m => !m.IsAssembly || (m.IsAssembly && !this._options.ExcludeInternals))
                 .OrderBy(x => x.Name)
@@ -128,32 +170,33 @@ internal partial class TypeDocumentation
         {
             IEnumerable<MarkdownInlineElement> inheritanceHierarchy = this._type.GetInheritanceHierarchy()
                 .Reverse()
-                .Select(t => t.GetDocsLink(
-                    this._assembly,
-                    noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-                    noPrefix: this._options.GitlabWiki));
+                .Select(t => this.DocsLink(t));
             lines.Add($"Inheritance {string.Join(" → ", inheritanceHierarchy)}");
         }
 
-        Type[] interfaces = this._type.GetInterfaces();
-        if (interfaces.Length > 0)
+        IEnumerable<Type> interfaces = this._type.GetInterfaces();
+        if (this._type.IsRecord())
         {
-            IEnumerable<MarkdownInlineElement> implements = interfaces
-                .Select(i => i.GetDocsLink(
-                    this._assembly,
-                    noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-                    noPrefix: this._options.GitlabWiki));
+            // Strip compiler-generated IEquatable<Self> and IComparable<Self> from records
+            interfaces = interfaces.Where(i =>
+                !(i.IsGenericType &&
+                  (i.GetGenericTypeDefinition() == typeof(IEquatable<>) ||
+                   i.GetGenericTypeDefinition() == typeof(IComparable<>)) &&
+                  i.GetGenericArguments().Length == 1 &&
+                  i.GetGenericArguments()[0] == this._type));
+        }
+
+        Type[] interfaceArray = interfaces.ToArray();
+        if (interfaceArray.Length > 0)
+        {
+            IEnumerable<MarkdownInlineElement> implements = interfaceArray.Select(i => this.DocsLink(i));
             lines.Add($"Implements {string.Join(", ", implements)}");
         }
 
         IEnumerable<Attribute> attributes = this._type.GetCustomAttributes();
         if (attributes.Any())
         {
-            IEnumerable<MarkdownInlineElement> links = attributes
-                .Select(a => a.GetType().GetDocsLink(
-                    this._assembly,
-                    noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-                    noPrefix: this._options.GitlabWiki));
+            IEnumerable<MarkdownInlineElement> links = attributes.Select(a => this.DocsLink(a.GetType()));
             lines.Add($"Attributes {string.Join(", ", links)}");
         }
 
@@ -454,7 +497,7 @@ internal partial class TypeDocumentation
                 $"<a id=\"{title.ToLowerInvariant()}-{member.Name.ToLowerInvariant()}\"/>" +
                 new MarkdownStrongEmphasis(member.GetSignature().FormatChevrons()), 3);
 
-            XElement memberDocElement = this._documentation.GetMember(member);
+            XElement memberDocElement = this.GetEffectiveMemberDoc(member);
 
             this.WriteObsoleteMember(member);
             this.WriteMemberInfoSummary(memberDocElement);
@@ -475,11 +518,9 @@ internal partial class TypeDocumentation
             {
                 this._document.AppendHeader("Property Value", 4);
 
-                MarkdownInlineElement typeName = propertyInfo.GetReturnType()?
-                    .GetDocsLink(
-                        this._assembly,
-                        noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-                        noPrefix: this._options.GitlabWiki);
+                MarkdownInlineElement typeName = propertyInfo.GetReturnType() is { } retType
+                    ? this.DocsLink(retType)
+                    : null;
                 IEnumerable<XNode> nodes = memberDocElement?.Element("value")?.Nodes();
                 MarkdownParagraph valueDoc = this.XNodesToMarkdownParagraph(nodes);
 
@@ -534,10 +575,7 @@ internal partial class TypeDocumentation
 
         this._document.AppendHeader("Returns", 4);
 
-        MarkdownInlineElement typeName = methodInfo.ReturnType.GetDocsLink(
-            this._assembly,
-            noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-            noPrefix: this._options.GitlabWiki);
+        MarkdownInlineElement typeName = this.DocsLink(methodInfo.ReturnType);
         IEnumerable<XNode> nodes = memberDocElement?.Element("returns")?.Nodes();
 
         if (nodes != null && nodes.Any())
@@ -571,10 +609,7 @@ internal partial class TypeDocumentation
 
         foreach (Type typeParam in typeParams)
         {
-            MarkdownInlineElement typeName = typeParam.GetDocsLink(
-                this._assembly,
-                noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-                noPrefix: this._options.GitlabWiki);
+            MarkdownInlineElement typeName = this.DocsLink(typeParam);
             IEnumerable<XNode> nodes = memberDocElement?.Elements("typeparam")
                 .FirstOrDefault(e => e.Attribute("name")?.Value == typeParam.Name)?.Nodes();
             MarkdownParagraph typeParamDoc = this.XNodesToMarkdownParagraph(nodes);
@@ -599,10 +634,7 @@ internal partial class TypeDocumentation
 
         foreach (ParameterInfo param in @params)
         {
-            MarkdownInlineElement typeName = param.ParameterType.GetDocsLink(
-                this._assembly,
-                noExtension: this._options.GitHubPages || this._options.GitlabWiki,
-                noPrefix: this._options.GitlabWiki);
+            MarkdownInlineElement typeName = this.DocsLink(param.ParameterType);
             IEnumerable<XNode> nodes = memberDocElement?.Elements("param")
                 .FirstOrDefault(e => e.Attribute("name")?.Value == param.Name)?.Nodes();
             MarkdownParagraph paramDoc = this.XNodesToMarkdownParagraph(nodes);
@@ -640,7 +672,7 @@ internal partial class TypeDocumentation
 
         foreach (FieldInfo field in fields)
         {
-            IEnumerable<XNode> nodes = this._documentation.GetMember(field)?.Element("summary")?.Nodes();
+            IEnumerable<XNode> nodes = this._context.GetMember(field)?.Element("summary")?.Nodes();
             if (nodes == null)
             {
                 continue;
@@ -708,10 +740,93 @@ internal partial class TypeDocumentation
                 this._assembly,
                 text,
                 this._options.GitHubPages || this._options.GitlabWiki,
-                this._options.GitlabWiki);
+                this._options.GitlabWiki,
+                this._options.LinkGenericArguments,
+                this._options.ExternalDocsResolver);
         }
 
-        return new MarkdownText(text ?? crefAttribute);
+        // Could not resolve to a MemberInfo — try a friendly display from the cref string itself
+        string displayText = !string.IsNullOrEmpty(text) ? text : FriendlyNameFromCref(crefAttribute);
+
+        // If we have an external docs resolver, attempt to map the cref namespace
+        if (this._options.ExternalDocsResolver != null && crefAttribute?.Length > 2)
+        {
+            string fullName = crefAttribute[2..]; // strip e.g. "T:" prefix
+            string ns = fullName.Contains('.') ? fullName[..fullName.LastIndexOf('.')] : fullName;
+            // Try to match namespace prefix for the external link
+            // Use a synthetic type-like slug
+            string url = TryBuildExternalCrefUrl(fullName, this._options.ExternalDocsResolver);
+            if (url != null)
+            {
+                return new MarkdownLink(displayText, url);
+            }
+        }
+
+        if (crefAttribute != null)
+        {
+            this._options.UnresolvedCount++;
+            Logger.Warning($"Could not resolve cref: {crefAttribute}");
+        }
+
+        return new MarkdownText(displayText);
+    }
+
+    /// <summary>
+    /// Produces a human-friendly display name from a raw cref value such as
+    /// <c>P:Microsoft.Xrm.Sdk.IExecutionContext.InputParameters</c>.
+    /// </summary>
+    private static string FriendlyNameFromCref(string cref)
+    {
+        if (string.IsNullOrEmpty(cref))
+        {
+            return cref;
+        }
+
+        // Strip type prefix (T:, M:, P:, etc.)
+        string name = cref.Length > 2 && cref[1] == ':' ? cref[2..] : cref;
+
+        // Remove generic arity annotations like `1
+        int backtick = name.IndexOf('`');
+        if (backtick > 0)
+        {
+            name = name[..backtick];
+        }
+
+        // Remove method parameters
+        int paren = name.IndexOf('(');
+        if (paren > 0)
+        {
+            name = name[..paren];
+        }
+
+        // Use the last segment as the display name (e.g. "InputParameters")
+        int lastDot = name.LastIndexOf('.');
+        return lastDot >= 0 ? name[(lastDot + 1)..] : name;
+    }
+
+    /// <summary>
+    /// Attempts to build an external docs URL for a fully-qualified cref name using the resolver.
+    /// Returns <c>null</c> when no prefix matches.
+    /// </summary>
+    private static string TryBuildExternalCrefUrl(string fullName, Utils.ExternalDocsResolver resolver)
+    {
+        // Build a minimal Type-like slug from the full name
+        string slug = fullName
+            .ToLowerInvariant()
+            .Replace('`', '-')
+            .Replace('+', '.')
+            .Split('(')[0]; // strip parameters
+
+        // Ask the resolver for any type whose namespace prefix matches fullName's namespace
+        string ns = fullName.Contains('.') ? fullName[..fullName.LastIndexOf('.')] : string.Empty;
+        if (string.IsNullOrEmpty(ns))
+        {
+            return null;
+        }
+
+        // Create a proxy to check the namespace match
+        string baseUrl = resolver.TryGetUrlByNamespace(ns);
+        return baseUrl != null ? $"{baseUrl}/{slug}" : null;
     }
 
     private bool TryGetMemberInfoFromReference(string crefAttribute, out MemberInfo memberInfo)
@@ -910,6 +1025,35 @@ internal partial class TypeDocumentation
     private Type GetTypeFromFullName(string typeFullName)
     {
         return Type.GetType(typeFullName) ?? this._assembly.GetType(typeFullName);
+    }
+
+    /// <summary>
+    /// Returns <c>true</c> for methods that the C# compiler generates automatically for record types
+    /// and that should not appear in generated documentation.
+    /// </summary>
+    private static bool IsRecordCompilerGeneratedMethod(MethodInfo method)
+    {
+        bool isCompilerGenerated = method.IsDefined(
+            typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), inherit: false);
+
+        // Names that are always compiler-synthesised (no user-authored form exists)
+        if (method.Name is "<Clone>$" or "PrintMembers" or "op_Equality" or "op_Inequality" or "Deconstruct")
+        {
+            return true;
+        }
+
+        // Equals(object), GetHashCode() and ToString() are only suppressed when the
+        // compiler itself generated them; user overrides lack the attribute.
+        if (!isCompilerGenerated)
+        {
+            return false;
+        }
+
+        return (method.Name == "Equals" && method.GetParameters().Length == 1 &&
+                method.GetParameters()[0].ParameterType == typeof(object)) ||
+               (method.Name == "GetHashCode" && method.GetParameters().Length == 0) ||
+               (method.Name == "ToString" && method.GetParameters().Length == 0 &&
+                method.DeclaringType?.IsRecord() == true);
     }
 
     [GeneratedRegex("[ ]{2,}")]
