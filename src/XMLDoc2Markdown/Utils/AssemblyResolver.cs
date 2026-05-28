@@ -25,9 +25,10 @@ internal sealed class AssemblyResolver
         this._searchDirectories.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
             "libs")); // Custom library folder
 
-        // Add NuGet packages directory
-        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        string nugetPackagesDir = Path.Combine(userProfile, ".nuget", "packages");
+        // Add NuGet packages directory — respect NUGET_PACKAGES env var if set (used by CI and
+        // sandbox environments), otherwise fall back to the default per-user cache location.
+        string nugetPackagesDir = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
         this._searchDirectories.Add(nugetPackagesDir);
 
         // Add ASP.NET Core directory
@@ -57,7 +58,11 @@ internal sealed class AssemblyResolver
             NuGetFramework.Parse("net6.0"),
             NuGetFramework.Parse("net7.0"),
             NuGetFramework.Parse("net8.0"),
+            NuGetFramework.Parse("net8.0-windows8.0"),
             NuGetFramework.Parse("net9.0"),
+            NuGetFramework.Parse("net9.0-windows8.0"),
+            NuGetFramework.Parse("net10.0"),
+            NuGetFramework.Parse("net10.0-windows8.0"),
             NuGetFramework.Parse(".NETFramework,Version=v4.5"),
             NuGetFramework.Parse(".NETFramework,Version=v4.5.1"),
             NuGetFramework.Parse(".NETFramework,Version=v4.5.2"),

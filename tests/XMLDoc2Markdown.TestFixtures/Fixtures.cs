@@ -102,4 +102,29 @@ namespace XMLDoc2Markdown.TestFixtures
 
     /// <summary>A type used to verify front-matter prepending.</summary>
     public class FrontMatterTarget { }
+
+    // ─── Inline reference rendering (see langword / href / typeparamref) ─────────
+
+    /// <summary>
+    /// Demonstrates inline reference rendering.
+    /// Pass <see langword="null"/> to opt out, or <see langword="true"/> to enable.
+    /// See <see href="https://example.com/docs">external docs</see> for details.
+    /// </summary>
+    public class InlineRefHost
+    {
+        /// <summary>
+        /// Returns <see langword="null"/> when no value is set.
+        /// </summary>
+        public string? NullableValue { get; set; }
+
+        /// <summary>
+        /// Processes a value of type <typeparamref name="T"/>.
+        /// Pass <see langword="null"/> to use the default.
+        /// More info at <see href="https://example.com/api">the API docs</see>.
+        /// </summary>
+        /// <typeparam name="T">The element type.</typeparam>
+        /// <param name="value">The value; may be <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if the value was accepted; <see langword="false"/> otherwise.</returns>
+        public bool Process<T>(T? value) => value is not null;
+    }
 }
