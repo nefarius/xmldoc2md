@@ -28,12 +28,19 @@ public class RealWorldEtwSnapshotTests
             .Value!;
 
     /// <summary>
-    /// Resolves the NuGet global packages folder — NUGET_PACKAGES env var if set,
-    /// else the default per-user cache (~/.nuget/packages).
+    /// Resolves the NuGet global packages folder — NUGET_PACKAGES env var if set
+    /// (and non-empty/non-whitespace), else the default per-user cache (~/.nuget/packages).
     /// </summary>
-    private static string NuGetPackagesRoot =>
-        Environment.GetEnvironmentVariable("NUGET_PACKAGES")
-        ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+    private static string NuGetPackagesRoot
+    {
+        get
+        {
+            string nugetEnvValue = Environment.GetEnvironmentVariable("NUGET_PACKAGES")?.Trim();
+            return !string.IsNullOrWhiteSpace(nugetEnvValue)
+                ? nugetEnvValue
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+        }
+    }
 
     /// <summary>
     /// Absolute path to the ETW DLL inside the NuGet global cache.
@@ -41,6 +48,12 @@ public class RealWorldEtwSnapshotTests
     private static string EtwDllPath =>
         Path.Combine(NuGetPackagesRoot, "nefarius.utilities.etw", EtwVersion,
             "lib", "net9.0-windows8.0", "Nefarius.Utilities.ETW.dll");
+
+    /// <summary>
+    /// Thread-safe cache for the combined Markdown output.  The generation is expensive
+    /// (spawns the full CLI pipeline) so we compute it once per test run and reuse.
+    /// </summary>
+    private static readonly Lazy<string> CombinedDocs = new(ComputeCombinedDocs, isThreadSafe: true);
 
     // Serialise console redirection so parallel tests don't stomp each other.
     private static readonly object ConsoleLock = new();
@@ -82,10 +95,18 @@ public class RealWorldEtwSnapshotTests
     }
 
     /// <summary>
+    /// Returns the cached combined Markdown output, computing it on first call.
+    /// Tests call this method so they remain readable and any future change to
+    /// the caching strategy only requires touching this one place.
+    /// </summary>
+    private static string GenerateCombinedDocs() => CombinedDocs.Value;
+
+    /// <summary>
+    /// Cold-path worker — called at most once by the <see cref="CombinedDocs"/> lazy.
     /// Generates docs for the ETW assembly and returns the combined Markdown
     /// (one file per type, sorted by filename, each prefixed with a header line).
     /// </summary>
-    private static string GenerateCombinedDocs()
+    private static string ComputeCombinedDocs()
     {
         string dllPath = EtwDllPath;
 

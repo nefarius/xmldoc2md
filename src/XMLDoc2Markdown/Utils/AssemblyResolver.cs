@@ -27,8 +27,12 @@ internal sealed class AssemblyResolver
 
         // Add NuGet packages directory — respect NUGET_PACKAGES env var if set (used by CI and
         // sandbox environments), otherwise fall back to the default per-user cache location.
-        string nugetPackagesDir = Environment.GetEnvironmentVariable("NUGET_PACKAGES")
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
+        // Treat empty or whitespace values the same as missing so a stale/blank env var does
+        // not silently become the search root.
+        string nugetEnvValue = Environment.GetEnvironmentVariable("NUGET_PACKAGES")?.Trim();
+        string nugetPackagesDir = !string.IsNullOrWhiteSpace(nugetEnvValue)
+            ? nugetEnvValue
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
         this._searchDirectories.Add(nugetPackagesDir);
 
         // Add ASP.NET Core directory
