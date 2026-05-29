@@ -1,18 +1,19 @@
 # <img align="left" width="100" height="100" src="icon.png">XMLDoc2Markdown 
 
-[![Build Status](https://dev.azure.com/charlesdevandiere/charlesdevandiere/_apis/build/status/charlesdevandiere.xmldoc2md?branchName=master)](https://dev.azure.com/charlesdevandiere/charlesdevandiere/_build/latest?definitionId=2&branchName=master)
-[![Nuget](https://img.shields.io/nuget/v/XMLDoc2Markdown.svg?color=blue&logo=nuget)](https://www.nuget.org/packages/XMLDoc2Markdown)
+[![.NET](https://github.com/nefarius/xmldoc2md/actions/workflows/build.yml/badge.svg)](https://github.com/nefarius/xmldoc2md/actions/workflows/build.yml)
+[![Nuget](https://img.shields.io/nuget/v/Nefarius.Tools.XMLDoc2Markdown.svg?color=blue&logo=nuget)](https://www.nuget.org/packages/Nefarius.Tools.XMLDoc2Markdown)
+![NuGet Downloads](https://img.shields.io/nuget/dt/Nefarius.Tools.XMLDoc2Markdown)
 
 Tool to generate markdown from C# XML documentation.
 
-See sample generated documentation [here](https://charlesdevandiere.github.io/xmldoc2md/).
+> *Based on the work of [Charles de Vandière](https://github.com/charlesdevandiere/xmldoc2md) and [Fernando Cerqueira](https://github.com/FRACerqueira/xmldoc2md) ❤*
 
 ## How to use
 
 ### Install tool
 
 ```shell
-dotnet tool install -g XMLDoc2Markdown
+dotnet tool install -g Nefarius.Tools.XMLDoc2Markdown
 ```
 
 ### Generate documentation
@@ -24,66 +25,8 @@ xmldoc2md <DLL_SOURCE_PATH> <OUTPUT_DIRECTORY>
 #### Example
 
 ```shell
-xmldoc2md Sample.dll docs
+xmldoc2md MyLibrary.dll docs
 ```
-
-### Insert code example
-
-You can insert custom code example into the documentation.
-
-Create one file for each examples. Give them the full name of corresponding type, property, method,...
-
-Add the CLI option: `--examples-path` with the path to examples files.
-
-#### Examples
-
-##### `MyClassLib.MyClass.md`
-
-~~~markdown
-## Example
-
-Lorem ipsum...
-
-```csharp
-new MyClass();
-```
-~~~
-
-##### `MyClassLib.MyClass.MyProperty.md`
-
-~~~markdown
-#### Example
-
-Lorem ipsum...
-
-```csharp
-foo.MyProperty = "foo";
-```
-~~~
-
-##### `MyClassLib.MyClass.MyMethod(System.String).md`
-
-~~~markdown
-#### Example
-
-Lorem ipsum...
-
-```csharp
-foo.MyMethod("foo");
-```
-~~~
-
-##### `MyClassLib.MyClass.#ctor.md`
-
-~~~markdown
-#### Example
-
-Lorem ipsum...
-
-```csharp
-new MyClass();
-```
-~~~
 
 ### Display command line help
 
@@ -95,25 +38,52 @@ xmldoc2md -h
 Usage: xmldoc2md [options] <src> <out>
 
 Arguments:
-  src                      DLL source path
-  out                      Output directory
+  src                          DLL source path
+  out                          Output directory
 
 Options:
-  -v|--version             Show version information.
-  -?|-h|--help             Show help information.
-  --index-page-name        Name of the index page, (default: "index").
-  --examples-path          Path to the code examples to insert in the documentation.
-  --github-pages           Remove '.md' extension from links for GitHub Pages.
-  --gitlab-wiki            Remove '.md' extension and './' prefix from links for gitlab wikis.
-  --back-button            Add a back button on each page with custom text, (default: "< Back").
-  --link-back-button       Set link for back button, (default: "./").
-  --private-members        Write documentation for private members.
-  --onlyinternal-members   Write documentation for only internal members.
-  --excludeinternal        Exclude documentation for internal types.
-  --templatefile           Layout template for documentation, (default: "template.md").
-  --back-index-button      Add a back button in index page, (default: "< Back").
-  --link-backindex-button  Set link for back button in index page, (default: "./").
+  -v|--version                 Show version information.
+  -?|-h|--help                 Show help information.
+  --index-page-name            Name of the index page, (default: "index").
+  --examples-path              Path to the code examples to insert in the
+                               documentation.
+  --github-pages               Remove '.md' extension from links for GitHub
+                               Pages.
+  --gitlab-wiki                Remove '.md' extension and './' prefix from links
+                               for gitlab wikis.
+  --back-button                Add a back button on each page with custom text,
+                               (default: "< Back").
+  --link-back-button           Set link for back button, (default: "./").
+  --private-members            Write documentation for private members.
+  --onlyinternal-members       Write documentation for only internal members.
+  --excludeinternal            Exclude documentation for internal types.
+  --templatefile               Layout template for documentation, (default:
+                               "template.md").
+  --back-index-button          Add a back button in index page, (default: "<
+                               Back").
+  --link-backindex-button      Set link for back button in index page, (default:
+                               "./").
+  --external-docs              Add an external documentation mapping in the
+                               format <namespace>=<url-base> (repeatable).
+  --external-docs-file         Path to a JSON file with namespace → URL-base
+                               mappings for external documentation.
+  --no-link-generic-arguments  Disable individual links for each generic type
+                               argument (legacy rendering).
+  --front-matter               YAML front matter (or @filepath) prepended to
+                               every generated type page. Supports placeholders:
+                               {TypeName}, {Namespace}, {AssemblyName}, {Date}.
+  --index-front-matter         YAML front matter (or @filepath) prepended to the
+                               generated index page. Supports placeholders:
+                               {AssemblyName}, {Date}.
+  --fail-on-unresolved         Exit with a non-zero code if any type reference
+                               could not be resolved.
 ```
+
+> **Tip — dependency resolution:** if the tool fails with "Unable to load one or more of the requested
+> types", the assembly's dependencies were not copied to the output directory.  Running
+> `dotnet publish` instead of `dotnet build` usually fixes this.  As an alternative, add
+> `<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>` to the target project's
+> `.csproj` to ensure all transitive DLLs are present alongside the documented assembly.
 
 ### Template Tokens
 
@@ -138,3 +108,11 @@ Options:
 {xmldoc2md-Back()}
 
 ```
+
+## Projects using XMLDoc2Markdown
+
+The following open-source projects use this tool to generate their API documentation:
+
+- [Nefarius.Utilities.ETW](https://github.com/nefarius/Nefarius.Utilities.ETW)
+- [Nefarius.Utilities.DeviceManagement](https://github.com/nefarius/Nefarius.Utilities.DeviceManagement)
+- [Nefarius.Drivers.WinUSB](https://github.com/nefarius/Nefarius.Drivers.WinUSB)
