@@ -25,66 +25,8 @@ xmldoc2md <DLL_SOURCE_PATH> <OUTPUT_DIRECTORY>
 #### Example
 
 ```shell
-xmldoc2md Sample.dll docs
+xmldoc2md MyLibrary.dll docs
 ```
-
-### Insert code example
-
-You can insert custom code example into the documentation.
-
-Create one file for each examples. Give them the full name of corresponding type, property, method,...
-
-Add the CLI option: `--examples-path` with the path to examples files.
-
-#### Examples
-
-##### `MyClassLib.MyClass.md`
-
-~~~markdown
-## Example
-
-Lorem ipsum...
-
-```csharp
-new MyClass();
-```
-~~~
-
-##### `MyClassLib.MyClass.MyProperty.md`
-
-~~~markdown
-#### Example
-
-Lorem ipsum...
-
-```csharp
-foo.MyProperty = "foo";
-```
-~~~
-
-##### `MyClassLib.MyClass.MyMethod(System.String).md`
-
-~~~markdown
-#### Example
-
-Lorem ipsum...
-
-```csharp
-foo.MyMethod("foo");
-```
-~~~
-
-##### `MyClassLib.MyClass.#ctor.md`
-
-~~~markdown
-#### Example
-
-Lorem ipsum...
-
-```csharp
-new MyClass();
-```
-~~~
 
 ### Display command line help
 
@@ -166,3 +108,11 @@ Options:
 {xmldoc2md-Back()}
 
 ```
+
+## Projects using XMLDoc2Markdown
+
+The following open-source projects use this tool to generate their API documentation:
+
+- [Nefarius.Utilities.ETW](https://github.com/nefarius/Nefarius.Utilities.ETW)
+- [Nefarius.Utilities.DeviceManagement](https://github.com/nefarius/Nefarius.Utilities.DeviceManagement)
+- [Nefarius.Drivers.WinUSB](https://github.com/nefarius/Nefarius.Drivers.WinUSB)
