@@ -8,8 +8,6 @@ Tool to generate markdown from C# XML documentation.
 
 > *Based on the work of [Charles de Vandière](https://github.com/charlesdevandiere/xmldoc2md) and [Fernando Cerqueira](https://github.com/FRACerqueira/xmldoc2md) ❤*
 
-See sample generated documentation [here](https://charlesdevandiere.github.io/xmldoc2md/).
-
 ## How to use
 
 ### Install tool
@@ -98,37 +96,45 @@ xmldoc2md -h
 Usage: xmldoc2md [options] <src> <out>
 
 Arguments:
-  src                           DLL source path
-  out                           Output directory
+  src                          DLL source path
+  out                          Output directory
 
 Options:
-  -v|--version                  Show version information.
-  -?|-h|--help                  Show help information.
-  --index-page-name             Name of the index page, (default: "index").
-  --examples-path               Path to the code examples to insert in the documentation.
-  --github-pages                Remove '.md' extension from links for GitHub Pages.
-  --gitlab-wiki                 Remove '.md' extension and './' prefix from links for gitlab wikis.
-  --back-button                 Add a back button on each page with custom text, (default: "< Back").
-  --link-back-button            Set link for back button, (default: "./").
-  --private-members             Write documentation for private members.
-  --onlyinternal-members        Write documentation for only internal members.
-  --excludeinternal             Exclude documentation for internal types.
-  --templatefile                Layout template for documentation, (default: "template.md").
-  --back-index-button           Add a back button in index page, (default: "< Back").
-  --link-backindex-button       Set link for back button in index page, (default: "./").
-  --external-docs               Add an external documentation mapping: <namespace>=<url-base>
-                                (repeatable). Default mappings cover System.*, Microsoft.AspNetCore.*,
-                                Microsoft.Extensions.*, etc. → learn.microsoft.com.
-  --external-docs-file          Path to a JSON file { "Namespace": "https://..." } for bulk mappings.
-  --no-link-generic-arguments   Disable individual hyperlinks for each generic type argument
-                                (reverts to the legacy single-link rendering).
-  --front-matter                YAML front matter prepended to every generated type page.
-                                Use @filepath to read from a file.
-                                Supports placeholders: {TypeName}, {Namespace}, {AssemblyName}, {Date}.
-  --index-front-matter          YAML front matter prepended to the index page.
-                                Use @filepath to read from a file.
-                                Supports placeholders: {AssemblyName}, {Date}.
-  --fail-on-unresolved          Exit with a non-zero code if any type reference could not be resolved.
+  -v|--version                 Show version information.
+  -?|-h|--help                 Show help information.
+  --index-page-name            Name of the index page, (default: "index").
+  --examples-path              Path to the code examples to insert in the
+                               documentation.
+  --github-pages               Remove '.md' extension from links for GitHub
+                               Pages.
+  --gitlab-wiki                Remove '.md' extension and './' prefix from links
+                               for gitlab wikis.
+  --back-button                Add a back button on each page with custom text,
+                               (default: "< Back").
+  --link-back-button           Set link for back button, (default: "./").
+  --private-members            Write documentation for private members.
+  --onlyinternal-members       Write documentation for only internal members.
+  --excludeinternal            Exclude documentation for internal types.
+  --templatefile               Layout template for documentation, (default:
+                               "template.md").
+  --back-index-button          Add a back button in index page, (default: "<
+                               Back").
+  --link-backindex-button      Set link for back button in index page, (default:
+                               "./").
+  --external-docs              Add an external documentation mapping in the
+                               format <namespace>=<url-base> (repeatable).
+  --external-docs-file         Path to a JSON file with namespace → URL-base
+                               mappings for external documentation.
+  --no-link-generic-arguments  Disable individual links for each generic type
+                               argument (legacy rendering).
+  --front-matter               YAML front matter (or @filepath) prepended to
+                               every generated type page. Supports placeholders:
+                               {TypeName}, {Namespace}, {AssemblyName}, {Date}.
+  --index-front-matter         YAML front matter (or @filepath) prepended to the
+                               generated index page. Supports placeholders:
+                               {AssemblyName}, {Date}.
+  --fail-on-unresolved         Exit with a non-zero code if any type reference
+                               could not be resolved.
 ```
 
 > **Tip — dependency resolution:** if the tool fails with "Unable to load one or more of the requested
