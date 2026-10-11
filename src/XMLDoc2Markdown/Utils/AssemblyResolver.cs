@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NuGet.Frameworks;
 
 namespace XMLDoc2Markdown.Utils;
@@ -43,7 +44,27 @@ internal class AssemblyResolver
     /// <summary>Adds a directory to search for dependency assemblies.</summary>
     public void AddSearchDirectory(string directory)
     {
-        if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+        this.AddSearchDirectory(directory, first: false);
+    }
+
+    /// <summary>Searches this directory before the tool directory and the package cache.</summary>
+    internal void AddSearchDirectoryFirst(string directory)
+    {
+        this.AddSearchDirectory(directory, first: true);
+    }
+
+    private void AddSearchDirectory(string directory, bool first)
+    {
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+        {
+            return;
+        }
+
+        if (first)
+        {
+            this._searchDirectories.Insert(0, directory);
+        }
+        else
         {
             this._searchDirectories.Add(directory);
         }
@@ -91,6 +112,37 @@ internal class AssemblyResolver
             .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         string marker = $"{Path.DirectorySeparatorChar}shared{Path.DirectorySeparatorChar}Microsoft.";
         return fullPath.Contains(marker, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Returns whether the running host already supplies this assembly from a shared framework.
+    /// A package-cache copy must not be loaded over that host assembly.
+    /// </summary>
+    internal static bool IsHostSharedFrameworkAssembly(System.Reflection.AssemblyName assemblyName)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
+        {
+            return false;
+        }
+
+        string fileName = assemblyName.Name + ".dll";
+        string runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
+        if (File.Exists(Path.Combine(runtimeDirectory, fileName)))
+        {
+            return true;
+        }
+
+        string version = new DirectoryInfo(runtimeDirectory).Name;
+        string sharedRoot = Path.GetFullPath(Path.Combine(runtimeDirectory, "..", ".."));
+        foreach (string framework in new[] { "Microsoft.AspNetCore.App", "Microsoft.WindowsDesktop.App" })
+        {
+            if (File.Exists(Path.Combine(sharedRoot, framework, version, fileName)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static string TryResolveFromPackageCache(

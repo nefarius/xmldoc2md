@@ -210,7 +210,7 @@ internal class Program
             AssemblyResolver resolver = new();
             string assemblyPath = Path.GetFullPath(src);
             string srcDir = Path.GetDirectoryName(assemblyPath) ?? Environment.CurrentDirectory;
-            resolver.AddSearchDirectory(srcDir);
+            resolver.AddSearchDirectoryFirst(srcDir);
 
             Assembly assembly = new AssemblyLoadContext(assemblyPath, resolver)
                 .LoadFromAssemblyPath(assemblyPath);

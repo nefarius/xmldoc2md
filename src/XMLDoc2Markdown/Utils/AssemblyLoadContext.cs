@@ -19,15 +19,23 @@ internal class AssemblyLoadContext : System.Runtime.Loader.AssemblyLoadContext
 
     protected override Assembly Load(AssemblyName assemblyName)
     {
-        string path = this._dependencyResolver.ResolveAssemblyToPath(assemblyName)
-            ?? this._assemblyResolver.TryResolveAssemblyPath(assemblyName);
+        string dependencyPath = this._dependencyResolver.ResolveAssemblyToPath(assemblyName);
+        if (!string.IsNullOrEmpty(dependencyPath))
+        {
+            return AssemblyResolver.IsSharedFrameworkPath(dependencyPath)
+                ? null
+                : this.LoadFromAssemblyPath(dependencyPath);
+        }
 
-        if (string.IsNullOrEmpty(path) || AssemblyResolver.IsSharedFrameworkPath(path))
+        string fallbackPath = this._assemblyResolver.TryResolveAssemblyPath(assemblyName);
+        if (string.IsNullOrEmpty(fallbackPath)
+            || AssemblyResolver.IsSharedFrameworkPath(fallbackPath)
+            || AssemblyResolver.IsHostSharedFrameworkAssembly(assemblyName))
         {
             return null;
         }
 
-        return this.LoadFromAssemblyPath(path);
+        return this.LoadFromAssemblyPath(fallbackPath);
     }
 
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)

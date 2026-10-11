@@ -135,6 +135,49 @@ public class AssemblyResolverTests : IDisposable
     }
 
     [Fact]
+    public void TryResolveAssemblyPath_PrefersSourceDirectoryOverPackageCache()
+    {
+        const string assemblyName = "Probe.Sample";
+        string cache = Path.Combine(this._root, "cache");
+        string source = Path.Combine(this._root, "source");
+        Directory.CreateDirectory(source);
+        this.WritePackage(assemblyName, "10.0.0", "net10.0", cache);
+        File.WriteAllBytes(Path.Combine(source, assemblyName + ".dll"), []);
+
+        AssemblyResolver resolver = new(cache);
+        resolver.AddSearchDirectoryFirst(source);
+
+        string path = resolver.TryResolveAssemblyPath(new AssemblyName($"{assemblyName}, Version=10.0.0.0"));
+
+        path.Should().Be(Path.Combine(source, assemblyName + ".dll"));
+    }
+
+    [Fact]
+    public void TryResolveAssemblyPath_FallsBackToPackageCacheWhenSourceMisses()
+    {
+        const string assemblyName = "Probe.Sample";
+        string cache = Path.Combine(this._root, "cache");
+        string source = Path.Combine(this._root, "source");
+        Directory.CreateDirectory(source);
+        this.WritePackage(assemblyName, "10.0.0", "net10.0", cache);
+
+        AssemblyResolver resolver = new(cache);
+        resolver.AddSearchDirectoryFirst(source);
+
+        string path = resolver.TryResolveAssemblyPath(new AssemblyName($"{assemblyName}, Version=10.0.0.0"));
+
+        path.Should().NotBeNull();
+        path.Should().Contain(Path.Combine("cache", assemblyName.ToLowerInvariant()));
+    }
+
+    [Fact]
+    public void IsHostSharedFrameworkAssembly_RecognizesRuntimeAssembly()
+    {
+        AssemblyResolver.IsHostSharedFrameworkAssembly(new AssemblyName("System.Runtime")).Should().BeTrue();
+        AssemblyResolver.IsHostSharedFrameworkAssembly(new AssemblyName("Probe.Sample")).Should().BeFalse();
+    }
+
+    [Fact]
     public void TryResolveAssemblyPath_ReturnsNoMatchForMissingOrWrongMajor()
     {
         const string assemblyName = "Probe.Sample";
@@ -150,10 +193,10 @@ public class AssemblyResolverTests : IDisposable
             .Should().BeNull();
     }
 
-    private void WritePackage(string assemblyName, string version, string framework)
+    private void WritePackage(string assemblyName, string version, string framework, string root = null)
     {
         string path = Path.Combine(
-            this._root,
+            root ?? this._root,
             assemblyName.ToLowerInvariant(),
             version,
             "lib",
