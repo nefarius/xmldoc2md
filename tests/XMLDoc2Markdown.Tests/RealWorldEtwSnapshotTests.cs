@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using XMLDoc2Markdown.Tests.Cli;
 using VerifyTests;
 using VerifyXunit;
 using Xunit;
@@ -56,7 +57,6 @@ public class RealWorldEtwSnapshotTests
     private static readonly Lazy<string> CombinedDocs = new(ComputeCombinedDocs, isThreadSafe: true);
 
     // Serialise console redirection so parallel tests don't stomp each other.
-    private static readonly object ConsoleLock = new();
 
     /// <summary>
     /// Invokes <c>Program.Main</c> via reflection with the given args.
@@ -64,7 +64,7 @@ public class RealWorldEtwSnapshotTests
     /// </summary>
     private static string RunCli(string[] args)
     {
-        lock (ConsoleLock)
+        lock (CliTestSync.ConsoleLock)
         {
             var writer = new StringWriter();
             TextWriter stdOut = Console.Out;

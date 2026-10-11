@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 // ReSharper disable all
 
@@ -126,5 +127,18 @@ namespace XMLDoc2Markdown.TestFixtures
         /// <param name="value">The value; may be <see langword="null"/>.</param>
         /// <returns><see langword="true"/> if the value was accepted; <see langword="false"/> otherwise.</returns>
         public bool Process<T>(T? value) => value is not null;
+    }
+
+    // ─── Shared-framework constructor dependency ─────────────────────────────────
+
+    /// <summary>Depends on a logger supplied by the ASP.NET Core shared framework.</summary>
+    public sealed class LoggingConsumer
+    {
+        /// <summary>Creates a consumer.</summary>
+        /// <param name="logger">The logger.</param>
+        public LoggingConsumer(ILogger<LoggingConsumer> logger)
+        {
+            ArgumentNullException.ThrowIfNull(logger);
+        }
     }
 }

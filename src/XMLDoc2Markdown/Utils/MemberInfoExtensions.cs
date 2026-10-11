@@ -201,6 +201,8 @@ internal static class MemberInfoExtensions
         {
             return methodGenericMap.TryGetValue(type.Name, out int methodIndex)
                 ? "``" + methodIndex
+                // Open generic parameters such as OperationResult<T> are absent from this map.
+                // That dictionary failure is a separate defect and stays unchanged on this branch.
                 : "`" + typeGenericMap[type.Name];
         }
         else if (type.HasElementType)
