@@ -100,6 +100,15 @@ public class TypeDocumentationTests
     // ─── Generic argument linking ─────────────────────────────────────────────
 
     [Fact]
+    public void TypeDocumentation_OpenGenericRecord_WritesFactoryMethods()
+    {
+        string output = GenerateDoc(typeof(OpenResult<>));
+
+        output.Should().Contain("Ok(T)");
+        output.Should().Contain("Fail(");
+    }
+
+    [Fact]
     public void TypeDocumentation_GenericWrapper_LinksGenericArguments()
     {
         var xmlDoc = BuildDocFromXml(

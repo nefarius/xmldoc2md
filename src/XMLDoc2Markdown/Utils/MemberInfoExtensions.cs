@@ -48,42 +48,31 @@ internal static class MemberInfoExtensions
                 return memberInfo.DeclaringType.GetIdentifier() + "." + memberInfo.Name;
 
             case MethodBase methodBase:
-                Dictionary<string, int> typeGenericMap = new();
-                Type[] typeGenericArguments = methodBase.DeclaringType.GetGenericArguments();
-                for (int i = 0; i < typeGenericArguments.Length; i++)
-                {
-                    Type typeGeneric = typeGenericArguments[i];
-                    typeGenericMap[typeGeneric.Name] = i;
-                }
-
-                Dictionary<string, int> methodGenericMap = new();
-                if (methodBase is MethodInfo)
-                {
-                    Type[] methodGenericArguments = methodBase.GetGenericArguments();
-                    for (int i = 0; i < methodGenericArguments.Length; i++)
-                    {
-                        Type methodGeneric = methodGenericArguments[i];
-                        methodGenericMap[methodGeneric.Name] = i;
-                    }
-                }
-
+                // A method on IEquatable<OpenResult<T>> is a constructed member. Documentation IDs
+                // address the generic definition, where T is that definition's own type parameter.
+                methodBase = AsDeclaredOnGenericDefinition(methodBase);
+                Type contextType = methodBase.DeclaringType;
                 ParameterInfo[] parameterInfos = methodBase.GetParameters();
 
-                string identifier = GetFormatedTypeName(methodBase.DeclaringType, false, typeGenericMap, methodGenericMap);
+                string identifier = GetFormatedTypeName(contextType, false, contextType);
                 identifier += ".";
                 identifier += methodBase is ConstructorInfo ? "#ctor" : methodBase.Name;
-                identifier += methodGenericMap.Count > 0 ? "``" + methodGenericMap.Count : string.Empty;
+                if (methodBase.IsGenericMethod)
+                {
+                    identifier += "``" + methodBase.GetGenericArguments().Length;
+                }
+
                 identifier += parameterInfos.Length > 0
                     ? $@"({string.Join(
                         ",",
-                        methodBase.GetParameters().Select(x => GetFormatedTypeName(x.ParameterType, true, typeGenericMap, methodGenericMap)))})"
+                        parameterInfos.Select(x => GetFormatedTypeName(x.ParameterType, true, contextType)))})"
                     : string.Empty;
 
                 if (methodBase is MethodInfo methodInfo &&
                     (methodBase.Name == "op_Implicit" ||
                     methodBase.Name == "op_Explicit"))
                 {
-                    identifier += "~" + GetFormatedTypeName(methodInfo.ReturnType, true, typeGenericMap, methodGenericMap);
+                    identifier += "~" + GetFormatedTypeName(methodInfo.ReturnType, true, contextType);
                 }
 
                 return identifier;
@@ -191,27 +180,33 @@ internal static class MemberInfoExtensions
         }
     }
 
-    private static string GetFormatedTypeName(
-        Type type,
-        bool isMethodParameter,
-        Dictionary<string, int> typeGenericMap,
-        Dictionary<string, int> methodGenericMap)
+    /// <summary>
+    /// Returns <paramref name="method"/> as declared on its generic type definition.
+    /// Constructed declaring types, such as <c>IEquatable&lt;OpenResult&lt;T&gt;&gt;</c>, otherwise
+    /// expose substituted type arguments whose nested type parameters are not addressable by name.
+    /// </summary>
+    private static MethodBase AsDeclaredOnGenericDefinition(MethodBase method)
+    {
+        Type declaringType = method.DeclaringType;
+        if (declaringType is not { IsGenericType: true, IsGenericTypeDefinition: false })
+        {
+            return method;
+        }
+
+        return MethodBase.GetMethodFromHandle(
+            method.MethodHandle,
+            declaringType.GetGenericTypeDefinition().TypeHandle) ?? method;
+    }
+
+    private static string GetFormatedTypeName(Type type, bool isMethodParameter, Type contextType)
     {
         if (type.IsGenericParameter)
         {
-            return methodGenericMap.TryGetValue(type.Name, out int methodIndex)
-                ? "``" + methodIndex
-                // Open generic parameters such as OperationResult<T> are absent from this map.
-                // That dictionary failure is a separate defect and stays unchanged on this branch.
-                : "`" + typeGenericMap[type.Name];
+            return FormatGenericParameter(type, contextType);
         }
         else if (type.HasElementType)
         {
-            string elementTypeString = GetFormatedTypeName(
-                type.GetElementType(),
-                isMethodParameter,
-                typeGenericMap,
-                methodGenericMap);
+            string elementTypeString = GetFormatedTypeName(type.GetElementType(), isMethodParameter, contextType);
 
             switch (type)
             {
@@ -235,11 +230,7 @@ internal static class MemberInfoExtensions
         else
         {
             string name = type.IsNested
-                ? GetFormatedTypeName(
-                    type.DeclaringType,
-                    isMethodParameter,
-                    typeGenericMap,
-                    methodGenericMap) + "."
+                ? GetFormatedTypeName(type.DeclaringType, isMethodParameter, contextType) + "."
                 : type.Namespace + ".";
 
             name += isMethodParameter
@@ -249,11 +240,39 @@ internal static class MemberInfoExtensions
             if (type.IsGenericType && isMethodParameter)
             {
                 IEnumerable<string> genericArgs = type.GetGenericArguments()
-                            .Select(argument => GetFormatedTypeName(argument, isMethodParameter, typeGenericMap, methodGenericMap));
+                    .Select(argument => GetFormatedTypeName(argument, isMethodParameter, contextType));
                 name += $"{{{string.Join(",", genericArgs)}}}";
             }
 
             return name;
         }
+    }
+
+    /// <summary>
+    /// Encodes a generic parameter the way the C# compiler writes documentation IDs.
+    /// Method type parameters use <c>``n</c>. Type parameters use <c>`n</c>, where the index is
+    /// their position on the member's declaring type, including parameters inherited from an
+    /// enclosing generic type.
+    /// </summary>
+    private static string FormatGenericParameter(Type parameter, Type contextType)
+    {
+        if (parameter.DeclaringMethod != null)
+        {
+            return "``" + parameter.GenericParameterPosition;
+        }
+
+        if (contextType != null)
+        {
+            Type[] typeArguments = contextType.GetGenericArguments();
+            for (int i = 0; i < typeArguments.Length; i++)
+            {
+                if (typeArguments[i] == parameter)
+                {
+                    return "`" + i;
+                }
+            }
+        }
+
+        return "`" + parameter.GenericParameterPosition;
     }
 }

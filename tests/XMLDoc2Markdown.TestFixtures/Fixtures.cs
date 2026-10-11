@@ -131,6 +131,75 @@ namespace XMLDoc2Markdown.TestFixtures
 
     // ─── Shared-framework constructor dependency ─────────────────────────────────
 
+    /// <summary>Open generic result returned by a tool.</summary>
+    /// <typeparam name="T">The success value.</typeparam>
+    public sealed record OpenResult<T>(bool Success, T? Value)
+    {
+        /// <summary>Creates a successful result.</summary>
+        /// <param name="value">The success value.</param>
+        public static OpenResult<T> Ok(T value) => new(true, value);
+
+        /// <summary>Creates a failed result.</summary>
+        /// <param name="code">The failure code.</param>
+        public static OpenResult<T> Fail(string code) => new(false, default);
+    }
+
+    /// <summary>Outer generic type.</summary>
+    /// <typeparam name="T">The outer type parameter.</typeparam>
+    public class OuterBox<T>
+    {
+        /// <summary>Nested generic type.</summary>
+        /// <typeparam name="U">The inner type parameter.</typeparam>
+        public class InnerBox<U>
+        {
+            /// <summary>Uses both enclosing type parameters.</summary>
+            /// <param name="outer">The outer value.</param>
+            /// <param name="inner">The inner value.</param>
+            /// <param name="outerList">A list of outer values.</param>
+            /// <param name="innerArray">An array of inner values.</param>
+            public void Use(T outer, U inner, List<T> outerList, U[] innerArray)
+            {
+            }
+        }
+
+        /// <summary>Nested type with no type parameters of its own.</summary>
+        public class PlainInner
+        {
+            /// <summary>Uses the outer type parameter.</summary>
+            /// <param name="value">The outer value.</param>
+            public void Use(T value)
+            {
+            }
+        }
+    }
+
+    /// <summary>A type parameter and a method type parameter share a name.</summary>
+    /// <typeparam name="T">The type parameter.</typeparam>
+#pragma warning disable CS0693 // The shared name is the case under test.
+    public class ShadowedBox<T>
+    {
+        /// <summary>The method type parameter hides the type parameter.</summary>
+        /// <typeparam name="T">The method type parameter.</typeparam>
+        /// <param name="value">A box of the method type parameter.</param>
+        public void Accept<T>(ShadowedBox<T> value)
+        {
+        }
+    }
+#pragma warning restore CS0693
+
+    /// <summary>A generic type with a generic method.</summary>
+    /// <typeparam name="T">The type parameter.</typeparam>
+    public class GenericMethodBox<T>
+    {
+        /// <summary>Accepts both the type parameter and a method type parameter.</summary>
+        /// <typeparam name="U">The method type parameter.</typeparam>
+        /// <param name="value">The type argument.</param>
+        /// <param name="other">The method argument.</param>
+        public void Accept<U>(T value, U other)
+        {
+        }
+    }
+
     /// <summary>Depends on a logger supplied by the ASP.NET Core shared framework.</summary>
     public sealed class LoggingConsumer
     {
