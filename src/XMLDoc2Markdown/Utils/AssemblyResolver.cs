@@ -12,6 +12,7 @@ internal class AssemblyResolver
 {
     private static readonly NuGetFramework TargetFramework = NuGetFramework.Parse("net10.0");
 
+    private readonly List<string> _priorityDirectories = new();
     private readonly List<string> _searchDirectories = new();
 
     /// <summary>Creates a resolver that probes the tool directory and the NuGet package cache.</summary>
@@ -62,12 +63,34 @@ internal class AssemblyResolver
 
         if (first)
         {
+            this._priorityDirectories.Insert(0, directory);
             this._searchDirectories.Insert(0, directory);
         }
         else
         {
             this._searchDirectories.Add(directory);
         }
+    }
+
+    /// <summary>Returns a dependency copied beside the documented assembly, if one exists.</summary>
+    internal string TryResolveAdjacentAssembly(System.Reflection.AssemblyName assemblyName)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
+        {
+            return null;
+        }
+
+        string fileName = assemblyName.Name + ".dll";
+        foreach (string directory in this._priorityDirectories)
+        {
+            string directPath = Path.Combine(directory, fileName);
+            if (File.Exists(directPath) && !IsSharedFrameworkPath(directPath))
+            {
+                return directPath;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -125,24 +148,39 @@ internal class AssemblyResolver
             return false;
         }
 
+        return IsHostSharedFrameworkAssembly(
+            assemblyName,
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string);
+    }
+
+    /// <summary>Matches <paramref name="assemblyName"/> against the host's resolved framework assemblies.</summary>
+    internal static bool IsHostSharedFrameworkAssembly(
+        System.Reflection.AssemblyName assemblyName,
+        string trustedPlatformAssemblies)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
+        {
+            return false;
+        }
+
         string fileName = assemblyName.Name + ".dll";
-        string runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-        if (File.Exists(Path.Combine(runtimeDirectory, fileName)))
+        if (!string.IsNullOrEmpty(trustedPlatformAssemblies))
         {
-            return true;
-        }
-
-        string version = new DirectoryInfo(runtimeDirectory).Name;
-        string sharedRoot = Path.GetFullPath(Path.Combine(runtimeDirectory, "..", ".."));
-        foreach (string framework in new[] { "Microsoft.AspNetCore.App", "Microsoft.WindowsDesktop.App" })
-        {
-            if (File.Exists(Path.Combine(sharedRoot, framework, version, fileName)))
+            foreach (string path in trustedPlatformAssemblies.Split(
+                         Path.PathSeparator,
+                         StringSplitOptions.RemoveEmptyEntries))
             {
-                return true;
+                if (string.Equals(Path.GetFileName(path), fileName, StringComparison.OrdinalIgnoreCase) &&
+                    IsSharedFrameworkPath(path))
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
 
-        return false;
+        return File.Exists(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), fileName));
     }
 
     private static string TryResolveFromPackageCache(

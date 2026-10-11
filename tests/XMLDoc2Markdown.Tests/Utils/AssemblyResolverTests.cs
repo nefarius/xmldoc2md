@@ -171,10 +171,53 @@ public class AssemblyResolverTests : IDisposable
     }
 
     [Fact]
+    public void TryResolveAdjacentAssembly_IgnoresPackageCache()
+    {
+        const string assemblyName = "Probe.Sample";
+        string cache = Path.Combine(this._root, "cache");
+        string source = Path.Combine(this._root, "source");
+        Directory.CreateDirectory(source);
+        this.WritePackage(assemblyName, "10.0.0", "net10.0", cache);
+        string adjacent = Path.Combine(source, assemblyName + ".dll");
+        File.WriteAllBytes(adjacent, []);
+
+        AssemblyResolver resolver = new(cache);
+        resolver.AddSearchDirectoryFirst(source);
+
+        resolver.TryResolveAdjacentAssembly(new AssemblyName($"{assemblyName}, Version=1.0.0.0"))
+            .Should().Be(adjacent);
+    }
+
+    [Fact]
     public void IsHostSharedFrameworkAssembly_RecognizesRuntimeAssembly()
     {
         AssemblyResolver.IsHostSharedFrameworkAssembly(new AssemblyName("System.Runtime")).Should().BeTrue();
+        AssemblyResolver.IsHostSharedFrameworkAssembly(new AssemblyName("Microsoft.Extensions.Logging.Abstractions"))
+            .Should().BeTrue();
         AssemblyResolver.IsHostSharedFrameworkAssembly(new AssemblyName("Probe.Sample")).Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsHostSharedFrameworkAssembly_UsesHostSelectedFrameworkVersion()
+    {
+        string trusted = string.Join(Path.PathSeparator, new[]
+        {
+            Path.Combine(
+                "dotnet", "shared", "Microsoft.NETCore.App", "10.0.12", "System.Runtime.dll"),
+            Path.Combine(
+                "dotnet", "shared", "Microsoft.AspNetCore.App", "10.0.9",
+                "Microsoft.Extensions.Logging.Abstractions.dll"),
+            Path.Combine(
+                "packages", "microsoft.extensions.logging.abstractions", "10.0.8", "lib", "net10.0",
+                "Microsoft.Extensions.Logging.Abstractions.dll")
+        });
+
+        AssemblyResolver.IsHostSharedFrameworkAssembly(
+                new AssemblyName("Microsoft.Extensions.Logging.Abstractions"),
+                trusted)
+            .Should().BeTrue();
+        AssemblyResolver.IsHostSharedFrameworkAssembly(new AssemblyName("Probe.Sample"), trusted)
+            .Should().BeFalse();
     }
 
     [Fact]

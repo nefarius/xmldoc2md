@@ -22,9 +22,15 @@ internal class AssemblyLoadContext : System.Runtime.Loader.AssemblyLoadContext
         string dependencyPath = this._dependencyResolver.ResolveAssemblyToPath(assemblyName);
         if (!string.IsNullOrEmpty(dependencyPath))
         {
-            return AssemblyResolver.IsSharedFrameworkPath(dependencyPath)
-                ? null
-                : this.LoadFromAssemblyPath(dependencyPath);
+            if (AssemblyResolver.IsSharedFrameworkPath(dependencyPath)
+                || AssemblyResolver.IsHostSharedFrameworkAssembly(assemblyName))
+            {
+                return null;
+            }
+
+            string adjacentPath = this._assemblyResolver.TryResolveAdjacentAssembly(assemblyName);
+            return this.LoadFromAssemblyPath(
+                string.IsNullOrEmpty(adjacentPath) ? dependencyPath : adjacentPath);
         }
 
         string fallbackPath = this._assemblyResolver.TryResolveAssemblyPath(assemblyName);
