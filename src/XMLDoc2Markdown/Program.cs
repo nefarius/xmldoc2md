@@ -208,11 +208,12 @@ internal class Program
             }
             
             AssemblyResolver resolver = new();
-            string srcDir = Path.GetDirectoryName(Path.GetFullPath(src)) ?? Environment.CurrentDirectory;
-            resolver.AddSearchDirectory(srcDir);
+            string assemblyPath = Path.GetFullPath(src);
+            string srcDir = Path.GetDirectoryName(assemblyPath) ?? Environment.CurrentDirectory;
+            resolver.AddSearchDirectoryFirst(srcDir);
 
-            Assembly assembly = new AssemblyLoadContext(src)
-                .LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(src)));
+            Assembly assembly = new AssemblyLoadContext(assemblyPath, resolver)
+                .LoadFromAssemblyPath(assemblyPath);
 
             string assemblyName = assembly.GetName().Name;
             XmlDocumentation documentation = new(src);

@@ -8,4 +8,8 @@
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\XMLDoc2Markdown.TestFixtures.xml</DocumentationFile>
   </PropertyGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>

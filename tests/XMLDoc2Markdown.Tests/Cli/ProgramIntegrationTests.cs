@@ -17,7 +17,6 @@ public class ProgramIntegrationTests
         typeof(XMLDoc2Markdown.TestFixtures.SimpleRecord).Assembly.Location;
 
     // Serialise console redirection so parallel tests don't stomp each other.
-    private static readonly object ConsoleLock = new();
 
     /// <summary>
     /// Invokes Program.Main via reflection, capturing stdout/stderr.
@@ -25,7 +24,7 @@ public class ProgramIntegrationTests
     /// </summary>
     private static string RunCli(string[] args)
     {
-        lock (ConsoleLock)
+        lock (CliTestSync.ConsoleLock)
         {
             var writer = new StringWriter();
             TextWriter stdOut = Console.Out;

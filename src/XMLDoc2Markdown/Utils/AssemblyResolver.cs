@@ -1,174 +1,294 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using NuGet.Frameworks;
 
 namespace XMLDoc2Markdown.Utils;
 
-/// <summary>
-///     Utility class to dynamically resolve missing assemblies from well-known locations.
-/// </summary>
-internal sealed class AssemblyResolver
+/// <summary>Selects dependency paths without loading them.</summary>
+internal class AssemblyResolver
 {
-    private readonly List<string> _frameworkFolders = new();
+    private static readonly NuGetFramework TargetFramework = NuGetFramework.Parse("net10.0");
 
+    private readonly List<string> _priorityDirectories = new();
     private readonly List<string> _searchDirectories = new();
 
+    /// <summary>Creates a resolver that probes the tool directory and the NuGet package cache.</summary>
     public AssemblyResolver()
     {
-        // Add default search directories
-        this._searchDirectories.Add(AppDomain.CurrentDomain.BaseDirectory);
-        this._searchDirectories.Add(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            "libs")); // Custom library folder
+        this.AddSearchDirectory(AppContext.BaseDirectory);
+        this.AddSearchDirectory(Path.Combine(AppContext.BaseDirectory, "libs"));
 
-        // Add NuGet packages directory — respect NUGET_PACKAGES env var if set (used by CI and
-        // sandbox environments), otherwise fall back to the default per-user cache location.
-        // Treat empty or whitespace values the same as missing so a stale/blank env var does
-        // not silently become the search root.
-        string nugetEnvValue = Environment.GetEnvironmentVariable("NUGET_PACKAGES")?.Trim();
-        string nugetPackagesDir = !string.IsNullOrWhiteSpace(nugetEnvValue)
-            ? nugetEnvValue
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
-        this._searchDirectories.Add(nugetPackagesDir);
+        string nugetPackagesPath = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+        if (string.IsNullOrWhiteSpace(nugetPackagesPath))
+        {
+            nugetPackagesPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                ".nuget",
+                "packages");
+        }
 
-        // Add ASP.NET Core directory
-        string runtimeDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-        DirectoryInfo aspNetCoreAppPath = new(Path.Combine(runtimeDirectory, "..", "..", "Microsoft.AspNetCore.App"));
-        this._searchDirectories.Add(aspNetCoreAppPath.FullName);
-
-        List<NuGetFramework> knownFrameworks =
-        [
-            NuGetFramework.Parse("netstandard1.0"),
-            NuGetFramework.Parse("netstandard1.1"),
-            NuGetFramework.Parse("netstandard1.2"),
-            NuGetFramework.Parse("netstandard1.3"),
-            NuGetFramework.Parse("netstandard1.4"),
-            NuGetFramework.Parse("netstandard1.5"),
-            NuGetFramework.Parse("netstandard1.6"),
-            NuGetFramework.Parse("netstandard2.0"),
-            NuGetFramework.Parse("netstandard2.1"),
-            NuGetFramework.Parse("netcoreapp1.0"),
-            NuGetFramework.Parse("netcoreapp1.1"),
-            NuGetFramework.Parse("netcoreapp2.0"),
-            NuGetFramework.Parse("netcoreapp2.1"),
-            NuGetFramework.Parse("netcoreapp2.2"),
-            NuGetFramework.Parse("netcoreapp3.0"),
-            NuGetFramework.Parse("netcoreapp3.1"),
-            NuGetFramework.Parse("net5.0"),
-            NuGetFramework.Parse("net6.0"),
-            NuGetFramework.Parse("net7.0"),
-            NuGetFramework.Parse("net8.0"),
-            NuGetFramework.Parse("net8.0-windows8.0"),
-            NuGetFramework.Parse("net9.0"),
-            NuGetFramework.Parse("net9.0-windows8.0"),
-            NuGetFramework.Parse("net10.0"),
-            NuGetFramework.Parse("net10.0-windows8.0"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.5"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.5.1"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.5.2"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.6"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.6.1"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.6.2"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.7"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.7.1"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.7.2"),
-            NuGetFramework.Parse(".NETFramework,Version=v4.8")
-        ];
-
-        this._frameworkFolders.AddRange(knownFrameworks.Select(f => f.GetShortFolderName()));
-
-        // Register the event handler
-        AppDomain.CurrentDomain.AssemblyResolve += this.OnAssemblyResolve;
+        this.AddSearchDirectory(nugetPackagesPath);
     }
 
+    /// <summary>Creates a resolver that probes only the supplied directories.</summary>
+    internal AssemblyResolver(params string[] searchDirectories)
+    {
+        foreach (string directory in searchDirectories)
+        {
+            this.AddSearchDirectory(directory);
+        }
+    }
+
+    /// <summary>Adds a directory to search for dependency assemblies.</summary>
     public void AddSearchDirectory(string directory)
     {
-        if (Directory.Exists(directory))
+        this.AddSearchDirectory(directory, first: false);
+    }
+
+    /// <summary>Searches this directory before the tool directory and the package cache.</summary>
+    internal void AddSearchDirectoryFirst(string directory)
+    {
+        this.AddSearchDirectory(directory, first: true);
+    }
+
+    private void AddSearchDirectory(string directory, bool first)
+    {
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+        {
+            return;
+        }
+
+        if (first)
+        {
+            this._priorityDirectories.Insert(0, directory);
+            this._searchDirectories.Insert(0, directory);
+        }
+        else
         {
             this._searchDirectories.Add(directory);
         }
     }
 
-    [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
-    private Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
+    /// <summary>Returns a dependency copied beside the documented assembly, if one exists.</summary>
+    internal string TryResolveAdjacentAssembly(System.Reflection.AssemblyName assemblyName)
     {
-        AssemblyName assemblyName = new(args.Name);
-
-        // Get the 3-digit version number
-        string version = GetThreeDigitVersion(assemblyName.Version);
-
-        foreach (string directory in this._searchDirectories)
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
         {
-            // Build the path for NuGet packages with framework folders
-            string packageDir = Path.Combine(directory, assemblyName.Name!.ToLowerInvariant(), version, "lib");
-            foreach (Assembly resolvedAssembly in from framework in this._frameworkFolders
-                     select Path.Combine(packageDir, framework, assemblyName.Name + ".dll")
-                     into assemblyPath
-                     where File.Exists(assemblyPath)
-                     select Assembly.LoadFrom(assemblyPath))
-            {
-                return resolvedAssembly;
-            }
-
-            // Try to find the best matching copy based on the major version
-            packageDir = Path.Combine(directory, assemblyName.Name!.ToLowerInvariant());
-            if (Directory.Exists(packageDir))
-            {
-                IOrderedEnumerable<DirectoryInfo> matchingMajorVersionDirs = Directory.GetDirectories(packageDir)
-                    .Select(d => new DirectoryInfo(d))
-                    .Where(d => d.Name.StartsWith($"{assemblyName.Version!.Major}."))
-                    .OrderByDescending(d => d.Name);
-
-                DirectoryInfo versionedSubDir = matchingMajorVersionDirs.First();
-
-                string libPath = Path.Combine(versionedSubDir.Name, "lib");
-                foreach (Assembly resolvedAssembly in from framework in this._frameworkFolders
-                         select Path.Combine(packageDir, libPath, framework, assemblyName.Name + ".dll")
-                         into assemblyPath
-                         where File.Exists(assemblyPath)
-                         select Assembly.LoadFrom(assemblyPath))
-                {
-                    return resolvedAssembly;
-                }
-            }
-
-            // Probe ASP.NET Core
-            if (directory.Contains("Microsoft.AspNetCore") && Directory.Exists(directory))
-            {
-                IOrderedEnumerable<DirectoryInfo> matchingMajorVersionDirs = Directory.GetDirectories(directory)
-                    .Select(d => new DirectoryInfo(d))
-                    .Where(d => d.Name.StartsWith($"{assemblyName.Version!.Major}."))
-                    .OrderByDescending(d => d.Name);
-
-                DirectoryInfo versionedSubDir = matchingMajorVersionDirs.First();
-
-                string assemblyPath = Path.Combine(versionedSubDir.FullName, assemblyName.Name + ".dll");
-                if (File.Exists(assemblyPath))
-                {
-                    return Assembly.LoadFrom(assemblyPath);
-                }
-            }
-
-            // Build the path for general directories (fallback)
-            string generalPath = Path.Combine(directory, assemblyName.Name + ".dll");
-            if (!File.Exists(generalPath))
-            {
-                continue;
-            }
-
-            return Assembly.LoadFrom(generalPath);
+            return null;
         }
 
-        // If not found, return null
+        string fileName = assemblyName.Name + ".dll";
+        foreach (string directory in this._priorityDirectories)
+        {
+            string directPath = Path.Combine(directory, fileName);
+            if (File.Exists(directPath) && !IsSharedFrameworkPath(directPath))
+            {
+                return directPath;
+            }
+        }
+
         return null;
+    }
+
+    /// <summary>
+    /// Finds a dependency assembly on disk.
+    /// Shared-framework files are left for the default runtime binder.
+    /// </summary>
+    internal string TryResolveAssemblyPath(System.Reflection.AssemblyName assemblyName)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
+        {
+            return null;
+        }
+
+        string fileName = assemblyName.Name + ".dll";
+        foreach (string directory in this._searchDirectories)
+        {
+            string packagePath = TryResolveFromPackageCache(directory, assemblyName, fileName);
+            if (packagePath is not null)
+            {
+                return packagePath;
+            }
+
+            string directPath = Path.Combine(directory, fileName);
+            if (File.Exists(directPath) && !IsSharedFrameworkPath(directPath))
+            {
+                return directPath;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>Returns whether a path belongs to a dotnet shared framework store.</summary>
+    internal static bool IsSharedFrameworkPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        string fullPath = Path.GetFullPath(path)
+            .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        string marker = $"{Path.DirectorySeparatorChar}shared{Path.DirectorySeparatorChar}Microsoft.";
+        return fullPath.Contains(marker, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Returns whether the running host already supplies this assembly from a shared framework.
+    /// A package-cache copy must not be loaded over that host assembly.
+    /// </summary>
+    internal static bool IsHostSharedFrameworkAssembly(System.Reflection.AssemblyName assemblyName)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
+        {
+            return false;
+        }
+
+        return IsHostSharedFrameworkAssembly(
+            assemblyName,
+            AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string);
+    }
+
+    /// <summary>Matches <paramref name="assemblyName"/> against the host's resolved framework assemblies.</summary>
+    internal static bool IsHostSharedFrameworkAssembly(
+        System.Reflection.AssemblyName assemblyName,
+        string trustedPlatformAssemblies)
+    {
+        if (string.IsNullOrWhiteSpace(assemblyName?.Name))
+        {
+            return false;
+        }
+
+        string fileName = assemblyName.Name + ".dll";
+        if (!string.IsNullOrEmpty(trustedPlatformAssemblies))
+        {
+            foreach (string path in trustedPlatformAssemblies.Split(
+                         Path.PathSeparator,
+                         StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (string.Equals(Path.GetFileName(path), fileName, StringComparison.OrdinalIgnoreCase) &&
+                    IsSharedFrameworkPath(path))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return File.Exists(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), fileName));
+    }
+
+    private static string TryResolveFromPackageCache(
+        string packagesRoot,
+        System.Reflection.AssemblyName assemblyName,
+        string fileName)
+    {
+        string packageDirectory = Path.Combine(packagesRoot, assemblyName.Name.ToLowerInvariant());
+        if (!Directory.Exists(packageDirectory) || assemblyName.Version is null)
+        {
+            return null;
+        }
+
+        string exactDirectory = Path.Combine(packageDirectory, GetThreeDigitVersion(assemblyName.Version));
+        string exactPath = SelectBestFrameworkAssembly(exactDirectory, fileName);
+        if (exactPath is not null)
+        {
+            return exactPath;
+        }
+
+        return Directory.GetDirectories(packageDirectory)
+            .Select(path => (path, version: TryParseVersion(Path.GetFileName(path))))
+            .Where(candidate => candidate.version is not null &&
+                                candidate.version.Major == assemblyName.Version.Major)
+            .OrderByDescending(candidate => candidate.version)
+            .Select(candidate => SelectBestFrameworkAssembly(candidate.path, fileName))
+            .FirstOrDefault(path => path is not null);
+    }
+
+    private static string SelectBestFrameworkAssembly(string versionDirectory, string fileName)
+    {
+        string libDirectory = Path.Combine(versionDirectory, "lib");
+        if (!Directory.Exists(libDirectory))
+        {
+            return null;
+        }
+
+        var candidates = Directory.GetDirectories(libDirectory)
+            .Select(path => (path, framework: NuGetFramework.ParseFolder(Path.GetFileName(path))))
+            .Where(candidate => candidate.framework.IsSpecificFramework &&
+                                File.Exists(Path.Combine(candidate.path, fileName)))
+            .Select(candidate => candidate.path)
+            .ToArray();
+
+        if (candidates.Length == 0)
+        {
+            return null;
+        }
+
+        string nearest = NuGetFrameworkUtility.GetNearest(
+            candidates,
+            TargetFramework,
+            path => NuGetFramework.ParseFolder(Path.GetFileName(path)));
+        if (nearest is not null)
+        {
+            return Path.Combine(nearest, fileName);
+        }
+
+        // net10.0 cannot NuGet-consume .NET Framework or Windows-only assets, but those
+        // assemblies still load for reflection. Prefer a modern Windows target, then
+        // the newest .NET Framework asset.
+        string fallback = candidates
+            .Select(path => (path, framework: NuGetFramework.ParseFolder(Path.GetFileName(path))))
+            .Where(candidate => FallbackFamily(candidate.framework) > 0)
+            .OrderByDescending(candidate => FallbackFamily(candidate.framework))
+            .ThenByDescending(candidate => candidate.framework.Version)
+            .Select(candidate => candidate.path)
+            .FirstOrDefault();
+
+        return fallback is null ? null : Path.Combine(fallback, fileName);
+    }
+
+    private static int FallbackFamily(NuGetFramework framework)
+    {
+        if (string.Equals(
+                framework.Framework,
+                FrameworkConstants.FrameworkIdentifiers.NetCoreApp,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return 2;
+        }
+
+        if (string.Equals(
+                framework.Framework,
+                FrameworkConstants.FrameworkIdentifiers.Net,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+    private static Version TryParseVersion(string directoryName)
+    {
+        if (string.IsNullOrWhiteSpace(directoryName))
+        {
+            return null;
+        }
+
+        string numeric = directoryName.Split('-', 2)[0];
+        return Version.TryParse(numeric, out Version version) ? version : null;
     }
 
     private static string GetThreeDigitVersion(Version version)
     {
-        return $"{version.Major}.{version.Minor}.{version.Build}";
+        int minor = version.Minor < 0 ? 0 : version.Minor;
+        int build = version.Build < 0 ? 0 : version.Build;
+        return $"{version.Major}.{minor}.{build}";
     }
 }

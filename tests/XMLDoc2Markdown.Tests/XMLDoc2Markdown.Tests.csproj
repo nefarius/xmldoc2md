@@ -40,6 +40,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\XMLDoc2Markdown\XMLDoc2Markdown.csproj" />
     <ProjectReference Include="..\XMLDoc2Markdown.TestFixtures\XMLDoc2Markdown.TestFixtures.csproj" />
   </ItemGroup>
